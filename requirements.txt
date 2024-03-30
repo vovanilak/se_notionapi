@@ -1,0 +1,5 @@
+python-dotenv
+requests
+plotly
+kaleido
+aiogram==3.4.1

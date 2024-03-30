@@ -1,0 +1,7 @@
+.env
+archive/
+graph/
+notion/
+user/
+utils/
+__pycache__/
