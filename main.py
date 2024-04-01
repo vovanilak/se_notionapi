@@ -475,7 +475,7 @@ class Anketa:
 
 def main():
 
-    want = int(input('Что ты хочешь?\n\n0 - Pro LIGA IT\n1 - AC/SE штатных сотрудников\n>>> '))
+    want = int(input('Куда добавить карточку?\n0 - Pro LIGA IT\n1 - AC/SE штатных сотрудников\n>>> '))
     number = int(input('Какой номер строки?\n>>> '))
     if want:
         person = Anketa(url=URL_STAFF,
