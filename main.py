@@ -70,6 +70,7 @@ class Anketa:
 
     def get_id(self):
         source = self.iso2date(self.created_date)
+        source = pd.Timestamp(datetime.strptime(str(self.created_date)[:10], "%Y-%m-%d"))
         d = source.day
         m = source.month
         y = source.year
@@ -88,7 +89,10 @@ class Anketa:
         from datetime import datetime
         import pandas as pd
         #anket_dates = self.main_data['dt_created'].apply(lambda a: datetime.strptime(a, "%Y-%m-%dT%H:%M:%S.%fZ") if isinstance(a, str) and a[0].isdigit() else None)
-        anket_dates = pd.to_datetime(self.main_data['dt_created'], format="ISO8601", errors='coerce')
+        anket_dates = self.main_data['dt_created'].apply(lambda a: pd.Timestamp(datetime.strptime(str(a)[:10], "%Y-%m-%d")) if isinstance(a, str) and a[0].isdigit() else pd.NaT)
+
+        #anket_dates = pd.to_datetime(self.main_data['dt_created'], format="%Y-%m-%d", errors='coerce')
+  
         return anket_dates
 
     def get_proporties(self):
@@ -470,6 +474,7 @@ class Anketa:
         return url
 
 def main():
+    '''
     want = int(input('Что ты хочешь?\n\n0 - Pro LIGA IT\n1 - AC/SE штатных сотрудников\n>>> '))
     number = int(input('Какой номер строки?\n>>> '))
     if want:
@@ -492,6 +497,12 @@ def main():
             database_result=DATABASE_LIGA, 
             database_person=DATABASE_LIGA_PERSON
             )
+    '''
+    person = Anketa(url=URL_STAFF,
+                row=30,
+                json_file='data/staff.json',
+                start_result_column=11)
+    print(person.id)
 
 if __name__ == '__main__':
     main()

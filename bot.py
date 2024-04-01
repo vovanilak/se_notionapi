@@ -10,8 +10,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-os.chdir('notionapi')
-
 TOKEN = getenv("BOT_TOKEN")
 dp = Dispatcher()
 

@@ -98,7 +98,7 @@ async def post_notion(message: Message, state: FSMContext):
         await message.answer(
             text='Ошибочка... Она может возникнуть в случае, когда указана несуществующая строка. Могут быть иные причины. Попробуйте ещё раз, либо свяжитесь с разработчиком'
         )
-        await cmd_menu(message)
+        #await cmd_menu(message)
 
     await cmd_menu(message)
     
