@@ -162,9 +162,11 @@ class Anketa:
         }
         response = requests.post(url, headers=headers, json=data)
         if response.status_code == 200:
-            print("Страница успешно создана в Notion!")
+            pass
+            #print("Страница успешно создана в Notion!")
         else:
-            print(f"Ошибка при создании страницы. Код ответа: {response.status_code}, Текст ответа: {response.text}")
+            pass
+            #print(f"Ошибка при создании страницы. Код ответа: {response.status_code}, Текст ответа: {response.text}")
         self.url = ''.join(response.json()['results'][0]['id'].split('-'))
         return self.url
 
@@ -242,9 +244,11 @@ class Anketa:
         self.query_notion(notion_token, database_id, search=title, column=column)
 
         if response.status_code == 200:
-            print("Страница успешно создана в Notion!")
+            pass
+            #print("Страница успешно создана в Notion!")
         else:
-            print(f"Ошибка при создании страницы. Код ответа: {response.status_code}, Текст ответа: {response.text}")
+            pass
+            #print(f"Ошибка при создании страницы. Код ответа: {response.status_code}, Текст ответа: {response.text}")
 
     def post_person_to_notion(self, notion_token, database_result, database_person):
         url = f'https://api.notion.com/v1/pages'
@@ -293,9 +297,11 @@ class Anketa:
         response = requests.post(url, headers=headers, json=dct)
 
         if response.status_code == 200:
-            print("Страница успешно создана в Notion!")
+            pass
+            #print("Страница успешно создана в Notion!")
         else:
-            print(f"Ошибка при создании страницы. Код ответа: {response.status_code}, Текст ответа: {response.text}")
+            pass
+            #print(f"Ошибка при создании страницы. Код ответа: {response.status_code}, Текст ответа: {response.text}")
 
     def post_liga(self, notion_token, database_result, database_person):
         self.post_to_notion(notion_token, database_result, title=self.id, column='ID Legioner')
@@ -419,7 +425,7 @@ class Anketa:
             upper_ttl = self.test_result[i]['level'][4]
             result.append(self.plot_radar_chart(data1, lower_bound_value, upper_bound_value, lower_ttl, upper_ttl))
         result.append(self.plot_bar_chart_with_annotations())
-        print('Графики на сервере!')
+        #print('Графики на сервере!')
         return result
 
     def post_uguu(self, img_path):
@@ -482,7 +488,7 @@ def main():
                         row=number,
                         json_file='data/staff.json',
                         start_result_column=11)
-        print(person.id)
+        #print(person.id)
         person.post_to_notion(NOTION_TOKEN, DATABASE_STAFF, title=person.name, column='Name')
         
     else:
@@ -490,7 +496,7 @@ def main():
                         row=number,
                         json_file='data/short2_back.json',
                         start_result_column=13)
-        print(person.id)
+        #print(person.id)
         
         person.post_liga(
             NOTION_TOKEN, 
