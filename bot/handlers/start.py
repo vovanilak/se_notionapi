@@ -4,6 +4,7 @@ from aiogram.types import Message
 from bot.keyboards import builders, inline
 from aiogram.fsm.context import FSMContext
 from aiogram.types.reply_keyboard_remove import ReplyKeyboardRemove
+import traceback
 
 router = Router()
 
@@ -94,9 +95,10 @@ async def post_notion(message: Message, state: FSMContext):
                 url=f'https://www.notion.so/s-e/{person.url}'
             )
         )
-    except Exception:
+    except Exception as err:
+        #await message.answer(str(err))
         await message.answer(
-            text='Ошибочка... Она может возникнуть в случае, когда указана несуществующая строка. Могут быть иные причины. Попробуйте ещё раз, либо свяжитесь с разработчиком'
+            text=f'Ошибочка...\n{traceback.format_exc()}\nОна может возникнуть в случае, когда указана несуществующая строка. Могут быть иные причины. Попробуйте ещё раз, либо свяжитесь с разработчиком'
         )
         #await cmd_menu(message)
 
