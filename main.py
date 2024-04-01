@@ -474,7 +474,7 @@ class Anketa:
         return url
 
 def main():
-    '''
+
     want = int(input('Что ты хочешь?\n\n0 - Pro LIGA IT\n1 - AC/SE штатных сотрудников\n>>> '))
     number = int(input('Какой номер строки?\n>>> '))
     if want:
@@ -503,6 +503,7 @@ def main():
                 json_file='data/staff.json',
                 start_result_column=11)
     print(person.id)
+    '''
 
 if __name__ == '__main__':
     main()
