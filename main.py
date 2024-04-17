@@ -1,47 +1,37 @@
 import pandas as pd
+import numpy as np
 import requests
 import plotly.graph_objects as go
 from datetime import datetime
 from dotenv import load_dotenv
+from pprint import pprint
 import os
 
 load_dotenv()
 
 WORKDIR = 'notionapi'
-NOTION_TOKEN = os.getenv('NOTION_TOKEN')
-DATABASE_STAFF = os.getenv('DATABASE_STAFF')
-DATABASE_LIGA = os.getenv('DATABASE_LIGA')
-DATABASE_LIGA_PERSON = os.getenv('DATABASE_LIGA_PERSON')
-URL_LIGA = os.getenv('URL_LIGA')
-URL_STAFF = os.getenv('URL_STAFF')
 
 if os.path.exists(WORKDIR) and os.path.isdir(WORKDIR):
     os.chdir(WORKDIR)
 
-levels = {
-    0: 'OutIT',
-    15: 'Junior-intern',
-    20: 'Junior',
-    30: 'Middle',
-    40: 'Senior',
-}
-level_f = {
-    0: 'OutIT',
-    72: 'Junior-intern',
-    108: 'Junior',
-    162: 'Middle',
-    216: 'Senior',
-}
 url = 'https://docs.google.com/spreadsheets/d/10oAnGTq7BT8R8vFca8Yd1am5cGBigP_L7vRypvtucI8/export?format=csv'
 url = 'data.csv'
 
 class Anketa:
+    NOTION_TOKEN = os.getenv('NOTION_TOKEN')
+    DATABASE_STAFF = os.getenv('DATABASE_STAFF')
+    DATABASE_LIGA = os.getenv('DATABASE_LIGA')
+    DATABASE_LIGA_PERSON = os.getenv('DATABASE_LIGA_PERSON')
+    URL_LIGA = os.getenv('URL_LIGA')
+    URL_STAFF = os.getenv('URL_STAFF')
 
     levels = {
         0: 'OutIT',
         15: 'Junior-intern',
         20: 'Junior',
+        25: 'Pre-Middle',
         30: 'Middle',
+        35: 'Pre-Senior',
         40: 'Senior',
     }
 
@@ -49,7 +39,9 @@ class Anketa:
     0: 'OutIT',
     72: 'Junior-intern',
     108: 'Junior',
+    144: 'Pre-Middle',
     162: 'Middle',
+    192: 'Pre-Senior',
     216: 'Senior',
     }
 
@@ -69,7 +61,6 @@ class Anketa:
 
 
     def get_id(self):
-        source = self.iso2date(self.created_date)
         source = pd.Timestamp(datetime.strptime(str(self.created_date)[:10], "%Y-%m-%d"))
         d = source.day
         m = source.month
@@ -80,10 +71,6 @@ class Anketa:
         id = str(d).rjust(2, '0') + str(m).rjust(2, '0')  + str(y)[2:] + str(inx + 1) + 'SE'
         return id
 
-    def iso2date(self, iso_format):
-        from datetime import datetime
-        iso_datetime = pd.Timestamp(datetime.strptime(iso_format + '+00:00', "%Y-%m-%dT%H:%M:%S.%fZ%z"))
-        return iso_datetime
 
     def get_dates(self):
         from datetime import datetime
@@ -94,81 +81,6 @@ class Anketa:
         #anket_dates = pd.to_datetime(self.main_data['dt_created'], format="%Y-%m-%d", errors='coerce')
   
         return anket_dates
-
-    def get_proporties(self):
-        dct = {"properties": {
-            "title": [
-                {
-                    "text": {
-                        "content": self.id
-                    }
-                }
-            ],
-            #"My grade": {'name': self.my_grade},
-            #"Опыт работы в ИТ": {"number": self.it_work_experience},
-            #"Город": {'name': self.city}
-            }
-        }
-        return dct
-
-    def get_personal_proporties(self):
-        dct = {
-            "properties": {   
-                "Name": {
-                    'title': [
-                        {
-                            "text": {
-                                "content": self.id
-                            }
-                        }
-                    ]
-                },
-
-                'Фамилия и Имя': {
-                    'rich_text': [
-                        {
-                            "text": {
-                                "content": self.name
-                            }
-                        }
-                    ]
-
-                },
-                "ID card": {
-                    "relation": [{
-                        'id': self.post_to_notion(),
-                    }],
-                },
-
-            }
-        }
-        return dct
-
-    def query_notion(self, notion_token, database_id, search, column):
-        import requests
-        url = f'https://api.notion.com/v1/databases/{database_id}/query'
-        headers = {
-            'Authorization': f'Bearer {notion_token}',
-            'Content-Type': 'application/json',
-            'Notion-Version': '2022-06-28',
-        }
-        data = {
-            'filter': {
-                'property': column,
-                'title': {
-                    'equals': search
-                }
-            }
-        }
-        response = requests.post(url, headers=headers, json=data)
-        if response.status_code == 200:
-            pass
-            #print("Страница успешно создана в Notion!")
-        else:
-            pass
-            #print(f"Ошибка при создании страницы. Код ответа: {response.status_code}, Текст ответа: {response.text}")
-        self.url = ''.join(response.json()['results'][0]['id'].split('-'))
-        return self.url
 
     def get_page(self):
         import json
@@ -215,7 +127,271 @@ class Anketa:
                 counter += 1
         return main
 
-    def post_to_notion(self, notion_token, database_id, title, column):
+    
+    def insert_value(self, dictionary, value):
+        if not isinstance(dictionary, dict):
+            return
+
+        keys = list(dictionary.keys())
+        last_key = keys[-1]
+        
+        if isinstance(dictionary[last_key], dict):
+            dictionary[last_key] = self.insert_value(dictionary[last_key], value)
+        elif isinstance(dictionary[last_key], list):
+            for i, item in enumerate(dictionary[last_key]):
+                if isinstance(item, dict):
+                    dictionary[last_key][i] = self.insert_value(item, value)
+        else:
+            dictionary[last_key] = value
+        
+        return dictionary
+
+    def title_prop(self, title_value, title_name):
+        for_all = {
+                title_name: {
+                    'title': [
+                        {
+                            "text":{
+                                "content": title_value
+                            } 
+                            
+                        }
+                    ],
+                },
+        }
+        return for_all
+
+    def info_prop(
+        self, 
+        title_value,
+        title_name,
+    ):
+        real_prop = {
+            'phone': 'Phone', # staff
+            'email': 'Email', # staff
+            'Какой ваш опыт работы в IT?': 'Опыт работы в ИТ', # liga
+            'В каком городе вы проживаете?': 'Город', # liga, staff
+            'Предпочтительный формат работы': 'Формат работы', # liga
+            'Как вы считаете, какому грейду вы сейчас соответствуете?': 'My grade', # liga,
+            'Возраст': 'Возраст', # liga, staff
+            'name': 'Фамилия и Имя', 
+            'iwork': 'Компания',
+        }
+
+        job_format = {
+            'Удалёнка': 'Удалёнка',
+            'В офисе': 'Офис',
+            'Готов к переезду в другой город / страну': 'Готов к релокации',
+            'Комбинированный формат': 'Комбинированный'
+        }
+        dd = {'Name': {
+                'Город': {
+                    'select': {
+                        'name': 'lol'
+                    }
+                },
+                'Возраст': {
+                    'number': 0
+                },
+                'Phone': {
+                    "phone_number": '+7'
+                }, 
+                'Email': {
+                    "email": 'em'
+                },
+                'My grade':{
+                    'select': {
+                        'name': 'test'
+                    }
+                },
+                'Опыт работы в ИТ': {
+                    'rich_text': [
+                        {
+                            "text": {
+                                "content": 'test'
+                            }
+                        }
+                    ]
+                },
+                'Компания': {
+                    'rich_text': [
+                        {
+                            "text": {
+                                "content": 'test'
+                            }
+                        }
+                    ]
+                }
+        },
+        'ID Legioner': {
+            'Формат работы': {
+                'multi_select': [
+                        {
+                            'name': 'test'
+                        }
+                    ]
+            },
+            'Город': {
+                'select': {
+                    'name': 'lol'
+                }
+            },
+            'Возраст': {
+                'number': 0
+            },
+            'Опыт работы в ИТ': {
+                'rich_text': [
+                    {
+                        "text": {
+                            "content": 'test'
+                        }
+                    }
+                ]
+            },
+            'My grade':{
+                'select': {
+                    'name': 'test'
+                }
+            },
+
+        },
+        'ID Person': {
+            'Phone': {
+                "phone_number": '+7'
+            }, 
+            'Email': {
+                "email": 'em'
+            },
+            'Возраст': {
+                'number': 0
+            },
+        }
+        }
+        
+
+        columns = list(real_prop.keys()) 
+        dct = {}
+        inf = self.data.dropna()
+        must_have = ('Фамилия и Имя', "ID card", 'Дивизион','Профиль специалиста')
+        for k in columns:
+            if k in inf.index and real_prop[k] in dd[title_name].keys():
+                if k == 'phone':
+                    inf[k] = '+' + str(inf[k]).split('.')[0]
+                elif k == 'Возраст':
+                    inf[k] = int(inf[k])
+                elif k == 'Как вы считаете, какому грейду вы сейчас соответствуете?':
+                    inf[k] = inf[k].split()[0]
+                elif k == 'Предпочтительный формат работы':
+                    lst = []
+                    for f in inf[k].split('\n'):
+                        lst.append(
+                            {
+                                'name': job_format[f]
+                            }
+                        )
+
+                    dct.update({
+                        real_prop[k]: {
+                            'multi_select': lst
+                        }
+                    })
+                    continue
+
+                dct.update({
+                    real_prop[k]: self.insert_value(dd[title_name][real_prop[k]], inf[k])
+                })
+        if title_name in ('ID Legioner', 'Name'):
+            dct.update(
+                {
+                    'Дивизион': {
+                        'select': {
+                            'name': 'Системный анализ'
+                        }
+                    },
+                    'Профиль специалиста': {
+                        'select': {
+                            'name': 'Системный аналитик'
+                        }
+                                
+                            },
+                    'Points': {
+                        'number': self.test_result_sum[0]
+                    },
+                }
+            )
+        elif title_name == 'ID Person':
+            dct.update(
+                {
+                    'Фамилия и Имя': {
+                        'rich_text': [
+                            {
+                                "text": {
+                                    "content": self.name
+                                }
+                            }
+                        ]
+
+                    },
+                    "ID card": {
+                        "relation": [{
+                            'id':  self.url_card(
+                                val=title_value,
+                            )
+                        }],
+                    },
+
+                }
+            )
+        dct.update(self.title_prop(title_name=title_name, title_value=title_value))
+        return dct
+
+    #### NOTION
+
+    @classmethod
+    def query_notion(
+        cls,
+        val, # какое значение искать
+        column, # в какой колонке искать
+        notion_token=NOTION_TOKEN, 
+        database_id=DATABASE_LIGA, 
+    ):
+        import requests
+        url = f'https://api.notion.com/v1/databases/{database_id}/query'
+        headers = {
+            'Authorization': f'Bearer {notion_token}',
+            'Content-Type': 'application/json',
+            'Notion-Version': '2022-06-28',
+        }
+
+        data = {
+            'filter': {
+                'property': column,
+                'title': {
+                    'equals': val
+                }
+            }
+        }
+        response = requests.post(url, headers=headers, json=data)
+        # url = ''.join(response.json()['results'][0]['id'].split('-'))
+        return response.json()
+
+    def url_card(self, val):
+        response = self.query_notion(
+            val=val,
+            column='ID Legioner',
+        )
+        url = ''.join(response['results'][0]['id'].split('-'))
+        return url
+
+    @classmethod
+    def post_to_notion(
+        cls,
+        database_id, 
+        prop: dict,
+        page_content: list,
+        emoji: str, # "😎", "🤓"
+        notion_token=NOTION_TOKEN, 
+    ):
         import requests
         url = f'https://api.notion.com/v1/pages'
         headers = {
@@ -223,90 +399,68 @@ class Anketa:
             'Content-Type': 'application/json',
             'Notion-Version': '2022-06-28',
         }
+
         dct = {
-            "parent": {"database_id": database_id}, "icon": {"type": "emoji", "emoji": "😎"},
-            "properties": {
-            "title": [
-                {
-                    "text": {
-                        "content": title
-                    }
-                }
-            ],
-            #"My grade": {'name': self.my_grade},
-            #"Опыт работы в ИТ": {"number": self.it_work_experience},
-            #"Город": {'name': self.city}
-            }
-        }
-        main = self.get_page()
-        result = {**dct, "children": main}
-        response = requests.post(url, headers=headers, json=result)
-        self.query_notion(notion_token, database_id, search=title, column=column)
-
-        if response.status_code == 200:
-            pass
-            #print("Страница успешно создана в Notion!")
-        else:
-            pass
-            #print(f"Ошибка при создании страницы. Код ответа: {response.status_code}, Текст ответа: {response.text}")
-
-    def post_person_to_notion(self, notion_token, database_result, database_person):
-        url = f'https://api.notion.com/v1/pages'
-        headers = {
-            'Authorization': f'Bearer {notion_token}',
-            'Content-Type': 'application/json',
-            'Notion-Version': '2022-06-28',
-        }
-        dct = {
-            "parent": {
-                "database_id": database_person
-                },
-            'icon': {
-                "type": "emoji", 
-                "emoji": "🤓"
-                },
-            "properties": {   
-                "Name": {
-                    'title': [
-                        {
-                            "text": {
-                                "content": self.id
-                            }
-                        }
-                    ]
-                },
-
-                'Фамилия и Имя': {
-                    'rich_text': [
-                        {
-                            "text": {
-                                "content": self.name
-                            }
-                        }
-                    ]
-
-                },
-                "ID card": {
-                    "relation": [{
-                        'id': self.query_notion(notion_token, database_result, search=self.id, column='ID Legioner')
-                    }],
-                },
-
-            }
+            "parent": {"database_id": database_id}, 
+            "icon": {"type": "emoji", "emoji": emoji},
+            "properties": prop,
+            "children": page_content
         }
         response = requests.post(url, headers=headers, json=dct)
+        return response.json()
 
-        if response.status_code == 200:
-            pass
-            #print("Страница успешно создана в Notion!")
-        else:
-            pass
-            #print(f"Ошибка при создании страницы. Код ответа: {response.status_code}, Текст ответа: {response.text}")
+    def post_staff(
+        self,
+        notion_token=NOTION_TOKEN, 
+        database_result=DATABASE_LIGA, 
+        database_person=DATABASE_LIGA_PERSON,
+    ):
+        try:
+            prop = self.info_prop(
+                self.name,
+                'Name'
+            )
+        except Exception:
+            prop = self.title_prop(title_name='Name', title_value=self.name)
 
-    def post_liga(self, notion_token, database_result, database_person):
-        self.post_to_notion(notion_token, database_result, title=self.id, column='ID Legioner')
-        self.post_person_to_notion(notion_token, database_result, database_person)
+        a = self.post_to_notion(
+            database_id=self.DATABASE_STAFF,
+            prop=prop,
+            page_content=self.get_page(),
+            emoji="😎",
+        )
+        return a
 
+
+    def post_liga(
+        self,
+        notion_token=NOTION_TOKEN, 
+        database_result=DATABASE_LIGA, 
+        database_person=DATABASE_LIGA_PERSON,
+    ):
+        try:
+            prop = self.info_prop(
+                self.id,
+                'ID Legioner'
+            )
+        except Exception:
+            prop = self.title_prop(title_name='ID Legioner', title_value=self.id)
+        a = self.post_to_notion(
+            database_id=database_result,
+            prop=prop,
+            page_content=self.get_page(),
+            emoji="🥷🏻"
+        )
+
+        prop = self.info_prop(title_name='ID Person', title_value=self.id)
+        b = self.post_to_notion(
+            database_id=database_person,
+            prop=prop,
+            page_content=[],
+            emoji="🤓"
+        )
+        return a 
+        
 
     def get_result(self):
         dct = {}
@@ -353,6 +507,8 @@ class Anketa:
         result = [int(response.split('.')[0]) - 1 for response in responses]
 
         return result
+
+    #### IMAGE ####
 
     def plot_radar_chart(self, data1, lower_bound_value, upper_bound_value, lower_ttl, upper_ttl):
         import plotly.graph_objects as go
@@ -425,10 +581,10 @@ class Anketa:
             upper_ttl = self.test_result[i]['level'][4]
             result.append(self.plot_radar_chart(data1, lower_bound_value, upper_bound_value, lower_ttl, upper_ttl))
         result.append(self.plot_bar_chart_with_annotations())
-        #print('Графики на сервере!')
         return result
-
-    def post_uguu(self, img_path):
+        
+    @classmethod
+    def post_uguu(cls, img_path):
         import requests
         url = ' https://uguu.se/upload'
         response = requests.post(url, files={"files[]": open(img_path, 'rb')})
@@ -479,39 +635,37 @@ class Anketa:
         os.remove(f"{new_file}.png")
         return url
 
-def main():
 
+def full():
     want = int(input('Куда добавить карточку?\n0 - Pro LIGA IT\n1 - AC/SE штатных сотрудников\n>>> '))
     number = int(input('Какой номер строки?\n>>> '))
     if want:
-        person = Anketa(url=URL_STAFF,
+        person = Anketa(url=Anketa.URL_STAFF,
                         row=number,
                         json_file='data/staff.json',
                         start_result_column=11)
-        #print(person.id)
-        person.post_to_notion(NOTION_TOKEN, DATABASE_STAFF, title=person.name, column='Name')
+        k = person.post_staff()
+        print(k)
         
     else:
-        person = Anketa(url=URL_LIGA,
+        person = Anketa(url=Anketa.URL_LIGA,
                         row=number,
                         json_file='data/short2_back.json',
                         start_result_column=13)
-        #print(person.id)
-        
-        person.post_liga(
-            NOTION_TOKEN, 
-            database_result=DATABASE_LIGA, 
-            database_person=DATABASE_LIGA_PERSON
-            )
-    '''
-    person = Anketa(url=URL_STAFF,
-                row=30,
-                json_file='data/staff.json',
-                start_result_column=11)
-    print(person.id)
-    '''
+        res = person.post_liga()
+        print(*res, sep='\n\n')
 
+def part():
+    person = Anketa(url=Anketa.URL_LIGA,
+                    row=10,
+                    json_file='data/short2_back.json',
+                    start_result_column=13)
+    #print(person.url_card('1002241SA'))
+    print(person.info_prop(title_name='ID Person', title_value='1602242SE'))
+
+def test():
+    pass
 if __name__ == '__main__':
-    main()
+    full()
 
 

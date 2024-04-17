@@ -46,15 +46,7 @@ async def developer(message: Message):
 
 @router.message(F.text.isdigit())
 async def post_notion(message: Message, state: FSMContext):
-    from main import (
-        Anketa, 
-        URL_LIGA, 
-        URL_STAFF, 
-        NOTION_TOKEN, 
-        DATABASE_LIGA,
-        DATABASE_LIGA_PERSON,
-        DATABASE_STAFF
-    )
+    from main import Anketa
 
     a = await state.get_data()
     await message.answer(
@@ -62,17 +54,19 @@ async def post_notion(message: Message, state: FSMContext):
     )
     try:
         if a['who'] == 'Штатный Сотрудник':
-            person = Anketa(url=URL_STAFF,
+
+            person = Anketa(url=Anketa.URL_STAFF,
                             row=int(message.text),
                             json_file='data/staff.json',
                             start_result_column=11)
             await message.answer(
                 text=f'Имя сотрудника: {person.name}'
             )
-            person.post_to_notion(NOTION_TOKEN, DATABASE_STAFF, title=person.name, column='Name')
             
+            res = person.post_staff()
         elif a['who'] == 'Легионер':
-            person = Anketa(url=URL_LIGA,
+
+            person = Anketa(url=Anketa.URL_LIGA,
                             row=int(message.text),
                             json_file='data/short2_back.json',
                             start_result_column=13)
@@ -80,11 +74,7 @@ async def post_notion(message: Message, state: FSMContext):
                 text=f'ID легионера: {person.id}'
             )
             
-            person.post_liga(
-                NOTION_TOKEN, 
-                database_result=DATABASE_LIGA, 
-                database_person=DATABASE_LIGA_PERSON
-                )
+            res = person.post_liga()
         else:
             await cmd_menu(message)
 
@@ -92,13 +82,13 @@ async def post_notion(message: Message, state: FSMContext):
             text='Готово! Можешь проверить карточку',
             reply_markup=inline.url(
                 text='Ссылка🔗',
-                url=f'https://www.notion.so/s-e/{person.url}'
+                url=res['url']
             )
         )
     except Exception as err:
         #await message.answer(str(err))
         await message.answer(
-            text=f'Ошибочка...\n{traceback.format_exc()}\nОна может возникнуть в случае, когда указана несуществующая строка. Могут быть иные причины. Попробуйте ещё раз, либо свяжитесь с разработчиком'
+            text=f'Ошибочка...\n{traceback.format_exc()[:4000]}\nОна может возникнуть в случае, когда указана несуществующая строка. Могут быть иные причины. Попробуйте ещё раз, либо свяжитесь с разработчиком'
         )
         #await cmd_menu(message)
 
