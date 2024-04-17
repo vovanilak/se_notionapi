@@ -173,9 +173,11 @@ class Anketa:
             'В каком городе вы проживаете?': 'Город', # liga, staff
             'Предпочтительный формат работы': 'Формат работы', # liga
             'Как вы считаете, какому грейду вы сейчас соответствуете?': 'My grade', # liga,
+            'Как вы считаете, какому грейду сейчас соответствуете?': 'My grade', # liga,
             'Возраст': 'Возраст', # liga, staff
             'name': 'Фамилия и Имя', 
             'iwork': 'Компания',
+            'city': 'Город',
         }
 
         job_format = {
@@ -199,7 +201,7 @@ class Anketa:
                 'Email': {
                     "email": 'em'
                 },
-                'My grade':{
+                'My Grade': {
                     'select': {
                         'name': 'test'
                     }
@@ -272,14 +274,14 @@ class Anketa:
         columns = list(real_prop.keys()) 
         dct = {}
         inf = self.data.dropna()
-        must_have = ('Фамилия и Имя', "ID card", 'Дивизион','Профиль специалиста')
         for k in columns:
             if k in inf.index and real_prop[k] in dd[title_name].keys():
                 if k == 'phone':
                     inf[k] = '+' + str(inf[k]).split('.')[0]
                 elif k == 'Возраст':
                     inf[k] = int(inf[k])
-                elif k == 'Как вы считаете, какому грейду вы сейчас соответствуете?':
+                elif k in ('Как вы считаете, какому грейду вы сейчас соответствуете?', 
+                'Как вы считаете, какому грейду сейчас соответствуете?'):
                     inf[k] = inf[k].split()[0]
                 elif k == 'Предпочтительный формат работы':
                     lst = []
@@ -300,6 +302,16 @@ class Anketa:
                 dct.update({
                     real_prop[k]: self.insert_value(dd[title_name][real_prop[k]], inf[k])
                 })
+        if title_name == 'ID Legioner':
+            dct.update(
+                {
+                    'Ассесмент-Центр': {
+                        'select': {
+                            'name': 'AC/SE'
+                        }
+                    }
+                }
+            )
         if title_name in ('ID Legioner', 'Name'):
             dct.update(
                 {
@@ -316,6 +328,12 @@ class Anketa:
                             },
                     'Points': {
                         'number': self.test_result_sum[0]
+                    },
+
+                    'AC/SE grade': {
+                        'select': {
+                            'name': self.test_result_sum[-1],
+                        }
                     },
                 }
             )
@@ -660,12 +678,22 @@ def part():
                     row=10,
                     json_file='data/short2_back.json',
                     start_result_column=13)
+    person = Anketa(url=Anketa.URL_STAFF,
+                    row=11,
+                    json_file='data/staff.json',
+                    start_result_column=11)
     #print(person.url_card('1002241SA'))
-    print(person.info_prop(title_name='ID Person', title_value='1602242SE'))
+    pprint(person.info_prop(title_name='ID Legioner', title_value='1602242SE'))
+    print(person.test_result, person.test_result_sum, sep='\n')
+
 
 def test():
-    pass
+    person = Anketa(url=Anketa.URL_STAFF,
+                    row=16,
+                    json_file='data/staff.json',
+                    start_result_column=11)
+    pprint(person.info_prop(title_name='Name', title_value='1602242SE'))
 if __name__ == '__main__':
-    full()
+    test()
 
 
