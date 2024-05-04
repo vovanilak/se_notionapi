@@ -26,7 +26,7 @@ class Anketa:
     URL_STAFF = os.getenv('URL_STAFF')
 
     levels = {
-        0: 'OutIT',
+        0: 'Outside',
         15: 'Junior-intern',
         20: 'Junior',
         25: 'Pre-Middle',
@@ -36,7 +36,7 @@ class Anketa:
     }
 
     level_f = {
-    0: 'OutIT',
+    0: 'Outside',
     72: 'Junior-intern',
     108: 'Junior',
     144: 'Pre-Middle',
@@ -82,14 +82,9 @@ class Anketa:
   
         return anket_dates
 
-    def get_page(self):
-        import json
-
-        img_links = self.test_result_img()
-        
-        with open(self.json_file, 'r') as file:
-            main = json.load(file)
+    def get_page(self, main):
         counter = 1
+        img_links = self.test_result_img()
         for i in range(len(main)):
             if "table" in main[i]:
                 if len(main[i]['table']["children"]) > 2 and len(main[i]['table']["children"][0]['table_row']['cells']) == 3:
@@ -125,6 +120,8 @@ class Anketa:
             elif "image" in main[i] and counter < 8:
                 main[i]['image']['external']['url'] = img_links[counter - 1]
                 counter += 1
+            elif 'heading_1' in main[i] and 'children' in main[i]['heading_1']:
+                main[i]['heading_1']['children'] = self.get_page(main[i]['heading_1']['children'])
         return main
 
     
@@ -160,6 +157,17 @@ class Anketa:
                 },
         }
         return for_all
+
+
+    @classmethod
+    def grade_acse(cls, grade):
+        grds = list(cls.level_f.keys())
+        for r in grds:
+            if grade in range(r):
+                return cls.level_f[grds[grds.index(r) - 1]]
+        return 'Senior'
+        
+ 
 
     def info_prop(
         self, 
@@ -332,7 +340,7 @@ class Anketa:
 
                     'AC/SE grade': {
                         'select': {
-                            'name': self.test_result_sum[-1],
+                            'name': self.grade_acse(self.test_result_sum[0]),
                         }
                     },
                 }
@@ -433,6 +441,9 @@ class Anketa:
         database_result=DATABASE_LIGA, 
         database_person=DATABASE_LIGA_PERSON,
     ):
+        import json
+        with open(self.json_file, 'r') as file:
+            main = json.load(file)
         try:
             prop = self.info_prop(
                 self.name,
@@ -444,7 +455,7 @@ class Anketa:
         a = self.post_to_notion(
             database_id=self.DATABASE_STAFF,
             prop=prop,
-            page_content=self.get_page(),
+            page_content=self.get_page(main),
             emoji="😎",
         )
         return a
@@ -456,6 +467,9 @@ class Anketa:
         database_result=DATABASE_LIGA, 
         database_person=DATABASE_LIGA_PERSON,
     ):
+        import json
+        with open(self.json_file, 'r') as file:
+            main = json.load(file)
         try:
             prop = self.info_prop(
                 self.id,
@@ -466,7 +480,7 @@ class Anketa:
         a = self.post_to_notion(
             database_id=database_result,
             prop=prop,
-            page_content=self.get_page(),
+            page_content=self.get_page(main),
             emoji="🥷🏻"
         )
 
@@ -660,7 +674,7 @@ def full():
     if want:
         person = Anketa(url=Anketa.URL_STAFF,
                         row=number,
-                        json_file='data/staff.json',
+                        json_file='data/new_version.json',
                         start_result_column=11)
         k = person.post_staff()
         print(k)
@@ -668,7 +682,7 @@ def full():
     else:
         person = Anketa(url=Anketa.URL_LIGA,
                         row=number,
-                        json_file='data/short2_back.json',
+                        json_file='data/new_version.json',
                         start_result_column=13)
         res = person.post_liga()
         print(*res, sep='\n\n')
@@ -678,22 +692,18 @@ def part():
                     row=10,
                     json_file='data/short2_back.json',
                     start_result_column=13)
-    person = Anketa(url=Anketa.URL_STAFF,
-                    row=11,
-                    json_file='data/staff.json',
-                    start_result_column=11)
-    #print(person.url_card('1002241SA'))
-    pprint(person.info_prop(title_name='ID Legioner', title_value='1602242SE'))
-    print(person.test_result, person.test_result_sum, sep='\n')
-
+    print(person.test_result_img())
 
 def test():
-    person = Anketa(url=Anketa.URL_STAFF,
-                    row=16,
-                    json_file='data/staff.json',
-                    start_result_column=11)
-    pprint(person.info_prop(title_name='Name', title_value='1602242SE'))
+    import json
+    person = Anketa(url=Anketa.URL_LIGA,
+                    row=10,
+                    json_file='data/new_version.json',
+                    start_result_column=13)
+    with open(person.json_file, 'r') as file:
+        main = json.load(file)
+    print(person.get_page(main))
 if __name__ == '__main__':
-    test()
+    part()
 
 

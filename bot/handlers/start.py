@@ -5,6 +5,8 @@ from bot.keyboards import builders, inline
 from aiogram.fsm.context import FSMContext
 from aiogram.types.reply_keyboard_remove import ReplyKeyboardRemove
 import traceback
+from aiogram.utils.media_group import MediaGroupBuilder
+from aiogram.types import URLInputFile
 
 router = Router()
 
@@ -20,13 +22,15 @@ async def cmd_start(message: Message):
 @router.message(Command('menu'))
 async def cmd_menu(message: Message):
     await message.answer(
-        text='Выбери действие⬇️',
+        text='Выбери участника⬇️',
         reply_markup=builders.reply(
-            ('Легионер', 'Штатный Сотрудник', "Связаться с разработчиком")
+            ('Легионер', 'Штатный Сотрудник')
         )
     )
 
-@router.message(F.text.in_(('Легионер', 'Штатный Сотрудник')))
+@router.message(F.text.in_((
+    ('Легионер', 'Штатный Сотрудник')
+)))
 async def who(message: Message, state: FSMContext):
     await state.update_data(who=message.text)
     await message.answer(
@@ -43,8 +47,17 @@ async def developer(message: Message):
                         url='https://t.me/vovanilak'
                     )
     )
-
 @router.message(F.text.isdigit())
+async def layer2(message: Message, state: FSMContext):
+    await state.update_data(row=int(message.text))
+    await message.answer(
+        text='Выбери действие⬇️',
+        reply_markup=builders.reply(
+            ('Опубликовать в Notion', 'Получить графики')
+        )
+    )
+
+@router.message(F.text.in_(('Опубликовать в Notion', 'Получить графики')))
 async def post_notion(message: Message, state: FSMContext):
     from main import Anketa
 
@@ -56,35 +69,48 @@ async def post_notion(message: Message, state: FSMContext):
         if a['who'] == 'Штатный Сотрудник':
 
             person = Anketa(url=Anketa.URL_STAFF,
-                            row=int(message.text),
-                            json_file='data/staff.json',
+                            row=a['row'],
+                            json_file='data/new_version.json',
                             start_result_column=11)
             await message.answer(
                 text=f'Имя сотрудника: {person.name}'
             )
-            
-            res = person.post_staff()
+            if message.text == 'Получить графики':
+                imgs = person.test_result_img()            
+                album_builder = MediaGroupBuilder()
+                for i in imgs:
+                    album_builder.add_photo(media=i)
+                await message.answer_media_group(media=album_builder.build())
+            elif message.text == 'Опубликовать в Notion':
+                res = person.post_staff()
         elif a['who'] == 'Легионер':
 
             person = Anketa(url=Anketa.URL_LIGA,
-                            row=int(message.text),
-                            json_file='data/short2_back.json',
+                            row=a['row'],
+                            json_file='data/new_version.json',
                             start_result_column=13)
             await message.answer(
                 text=f'ID легионера: {person.id}'
             )
             
-            res = person.post_liga()
+            if message.text == 'Получить графики':
+                imgs = person.test_result_img()            
+                album_builder = MediaGroupBuilder()
+                for i in imgs:
+                    album_builder.add_photo(media=i)
+                await message.answer_media_group(media=album_builder.build())
+            elif message.text == 'Опубликовать в Notion':
+                res = person.post_liga()
         else:
             await cmd_menu(message)
-
-        await message.answer(
-            text='Готово! Можешь проверить карточку',
-            reply_markup=inline.url(
-                text='Ссылка🔗',
-                url=res['url']
+        if message.text == 'Опубликовать в Notion':
+            await message.answer(
+                text=f'Готово! Можешь проверить карточку',
+                reply_markup=inline.url(
+                    text='Ссылка🔗',
+                    url=res['url']
+                )
             )
-        )
     except Exception as err:
         #await message.answer(str(err))
         await message.answer(
