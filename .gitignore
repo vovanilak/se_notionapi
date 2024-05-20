@@ -3,7 +3,6 @@ archive/
 graph/
 notion/
 user/
-utils/
 __pycache__/
 se_google_key.json
 my_google_key.json
