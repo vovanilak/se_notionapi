@@ -53,11 +53,11 @@ async def layer2(message: Message, state: FSMContext):
     await message.answer(
         text='Выбери действие⬇️',
         reply_markup=builders.reply(
-            ('Опубликовать в Notion', 'Получить графики')
+            (('Опубликовать в Notion',)) # Получить графики
         )
     )
 
-@router.message(F.text.in_(('Опубликовать в Notion', 'Получить графики')))
+@router.message(F.text.in_(('Опубликовать в Notion'))) # получить графики
 async def post_notion(message: Message, state: FSMContext):
     from main import Anketa
 
@@ -76,11 +76,17 @@ async def post_notion(message: Message, state: FSMContext):
                 text=f'Имя сотрудника: {person.name}'
             )
             if message.text == 'Получить графики':
-                imgs = person.test_result_img()            
-                album_builder = MediaGroupBuilder()
-                for i in imgs:
-                    album_builder.add_photo(media=i)
-                await message.answer_media_group(media=album_builder.build())
+                here = person.api.folder_here(person.name)
+                if here:
+                    await message.answer(
+                        text='Папка с графиками',
+                        reply_markup=inline.url(
+                            text='Перейти в папку📂',
+                            url='https://drive.google.com/drive/folders/' + here
+                        )
+                    )
+                else:
+                     await message.answer('Карточка ещё не создана, графиков нет')
             elif message.text == 'Опубликовать в Notion':
                 res = person.post_staff()
         elif a['who'] == 'Легионер':
@@ -99,6 +105,14 @@ async def post_notion(message: Message, state: FSMContext):
                 for i in imgs:
                     album_builder.add_photo(media=i)
                 await message.answer_media_group(media=album_builder.build())
+                #here = person.api.folder_here(person.name)
+                #await message.answer(
+                #    text='Папка с графиками',
+                #    reply_markup=inline.url(
+                #        text='Перейти в папку📂',
+                #        url='https://drive.google.com/drive/folders/' + here
+                #    )
+                #)
             elif message.text == 'Опубликовать в Notion':
                 res = person.post_liga()
         else:

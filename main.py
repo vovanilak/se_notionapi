@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 from datetime import datetime
 from dotenv import load_dotenv
 from pprint import pprint
+from utils.google_drive import GoogleApi
 import os
 
 load_dotenv()
@@ -45,6 +46,17 @@ class Anketa:
     216: 'Senior',
     }
 
+    level_text = {
+        "Outside": "Outside: Не обладает необходимыми для Junior-intern навыками, не имеющий достаточно опыта работы с программными средствами (0-72 поинтов)",
+        "Junior-intern" : "Junior-intern: Специалист с начальными техническими навыками, способный выполнять задачи проекта/команды только под контролем наставника (72-108 поинтов)",
+        "Junior": "Junior: Специалист с формирующимися навыками ответственности, требует привлечения наставника при необходимости (108-144 поинтов)", 
+        "Pre-Middle": "Pre-Middle: Специалист с приемлемым уровнем самостоятельности, при котором формируются навыки ответственности и эффективности (144-162 поинтов)", 
+        "Middle": "Middle: Специалист, с хорошо развитыми техническими навыками, тактическим мышлением, планированием и контролем поставленных задач. Полностью самостоятельный, достигает результата за счет личной эффективности (162-192 поинтов)", 
+        "Pre-Senior" : "Pre-Senior: Специалист выступает техническим консультантом команды, мыслит и принимает стратегические решения на уровне проекта / отдела (192-216 поинтов)", 
+        "Senior": "Senior: Специалист является техническим лидером команды с глубокими знаниями, опытом и экспертизой. Решает задачи на уровне проекта / отдела (216-240 поинтов)", 
+        "Lead" : "Lead: Специалист является компетентным лидером команды, обеспечивает условия реализации стратегии компании. Основная функция - организация работы команды и контроль выполнения задач (216-240 поинтов)"
+    }
+
     def __init__(self, url, row, json_file, start_result_column):
         import pandas as pd
         self.main_data = pd.read_csv(url)
@@ -58,6 +70,13 @@ class Anketa:
         self.test_result = self.get_result()
         self.test_result_sum = self.get_result_sum()
         self.url = None
+        self.api = GoogleApi(
+            service_path='se_google_key.json',
+            root_folder_id='1wbmhJP3JEsL2_n2bgXaD4yl7PAbx6k_R'
+            #root_folder_id='1mnyu7zvD1yNgAtZDWmKeeSMdmXRYuOYu'
+            #root_folder_id='19i_mtgS6DTCMhtzPpt3wKdnN0vH_U8iW'
+        )
+        self.img_links = self.test_result_img()
 
 
     def get_id(self):
@@ -84,7 +103,6 @@ class Anketa:
 
     def get_page(self, main):
         counter = 1
-        img_links = self.test_result_img()
         for i in range(len(main)):
             if "table" in main[i]:
                 if len(main[i]['table']["children"]) > 2 and len(main[i]['table']["children"][0]['table_row']['cells']) == 3:
@@ -118,10 +136,29 @@ class Anketa:
                         children[j]["table_row"]['cells'][2][0]['text']['content'] = str(self.test_result[j]['level'][0])
                     children[-1]["table_row"]['cells'][2][0]['text']['content'] = str(self.test_result_sum[0])
             elif "image" in main[i] and counter < 8:
-                main[i]['image']['external']['url'] = img_links[counter - 1]
-                counter += 1
+                #main[i]['image']['external']['url'] = self.img_links[counter - 1]
+                del main[i]['image']
+                main[i]['type'] = 'embed'
+                main[i]['object'] = 'block'
+                main[i]['embed'] = {'url': self.img_links[counter - 1]}
+                if counter == 1:
+                    del self.img_links[counter - 1]
+                else:
+                    counter += 1
+
             elif 'heading_1' in main[i] and 'children' in main[i]['heading_1']:
                 main[i]['heading_1']['children'] = self.get_page(main[i]['heading_1']['children'])
+
+            elif i == 0 and 'heading_2' in main[i]:
+                text = f'По результатам ассесмента перед вами специалист с предварительно подтвержденным грейдом уровня {self.grade_acse(self.test_result_sum[0])} ({self.test_result_sum[0]} пойнтов).'
+                main[i]['heading_2']['rich_text'][0]['plain_text'] = text
+                main[i]['heading_2']['rich_text'][0]['text']['content'] = text
+
+            elif i == 3 and 'paragraph' in main[i] and counter == 1:
+                text = self.level_text[self.grade_acse(self.test_result_sum[0])]
+                main[i]['paragraph']['rich_text'] = [{"type": "text", "text": {"content": text}, "plain_text": text}]
+        if self.start_column == 11 and 'heading_2' in main[0]:
+            del main[-1]
         return main
 
     
@@ -181,7 +218,7 @@ class Anketa:
             'В каком городе вы проживаете?': 'Город', # liga, staff
             'Предпочтительный формат работы': 'Формат работы', # liga
             'Как вы считаете, какому грейду вы сейчас соответствуете?': 'My grade', # liga,
-            'Как вы считаете, какому грейду сейчас соответствуете?': 'My grade', # liga,
+            'Как вы считаете, какому грейду сейчас соответствуете?': 'My grade', # staff,
             'Возраст': 'Возраст', # liga, staff
             'name': 'Фамилия и Имя', 
             'iwork': 'Компания',
@@ -209,7 +246,7 @@ class Anketa:
                 'Email': {
                     "email": 'em'
                 },
-                'My Grade': {
+                'My grade': {
                     'select': {
                         'name': 'test'
                     }
@@ -290,7 +327,10 @@ class Anketa:
                     inf[k] = int(inf[k])
                 elif k in ('Как вы считаете, какому грейду вы сейчас соответствуете?', 
                 'Как вы считаете, какому грейду сейчас соответствуете?'):
-                    inf[k] = inf[k].split()[0]
+                    if inf[k].startswith('Я'):
+                        inf[k] = 'Я не аналитик и хочу им стать'
+                    else:
+                        inf[k] = inf[k].split()[0]
                 elif k == 'Предпочтительный формат работы':
                     lst = []
                     for f in inf[k].split('\n'):
@@ -599,20 +639,33 @@ class Anketa:
 
         new_file = str(time.time())
         pio.write_image(fig, f"{new_file}.png", scale=2)
-        url = self.post_uguu(f"{new_file}.png")
-        os.remove(f"{new_file}.png")
-        return url
+        return f'{new_file}.png'
         
     def test_result_img(self):
+        folder_id = self.api.folder_here(self.name)
+        if folder_id:
+            self.api.del_file(folder_id)
         result = []
+        img = self.plot_bar_chart_with_annotations()
+        link = self.api.create_n_load(
+            folder_name=self.name,
+            img_path=img,
+            img_name='result')
+        os.remove(img)
+        result.append(link)
         for i in range(1, len(self.test_result) + 1):
             data1 = self.test_result[i]['meta']
             lower_bound_value = self.test_result[i]['level'][1] // 10
             upper_bound_value = self.test_result[i]['level'][2] // 10
             lower_ttl = self.test_result[i]['level'][3]
             upper_ttl = self.test_result[i]['level'][4]
-            result.append(self.plot_radar_chart(data1, lower_bound_value, upper_bound_value, lower_ttl, upper_ttl))
-        result.append(self.plot_bar_chart_with_annotations())
+            img = self.plot_radar_chart(data1, lower_bound_value, upper_bound_value, lower_ttl, upper_ttl)
+            link = self.api.create_n_load(
+                folder_name=self.name, 
+                img_path=img, 
+                img_name=str(i))
+            os.remove(img)
+            result.append(link)
         return result
         
     @classmethod
@@ -622,6 +675,17 @@ class Anketa:
         response = requests.post(url, files={"files[]": open(img_path, 'rb')})
         res = response.json()
         return res['files'][0]['url']
+
+    def post_google(
+        self, 
+        img_path,
+        img_name,
+        folder_name,
+        ):
+        link = self.api.create_n_load(folder_name, img_path, img_name)
+        return link
+
+
 
     def plot_bar_chart_with_annotations(self):
         import plotly.graph_objects as go
@@ -663,9 +727,7 @@ class Anketa:
 
         new_file = str(time.time())
         pio.write_image(fig, f"{new_file}.png", scale=2)
-        url = self.post_uguu(f"{new_file}.png")
-        os.remove(f"{new_file}.png")
-        return url
+        return f'{new_file}.png' 
 
 
 def full():
@@ -704,6 +766,6 @@ def test():
         main = json.load(file)
     print(person.get_page(main))
 if __name__ == '__main__':
-    part()
+    full()
 
 
