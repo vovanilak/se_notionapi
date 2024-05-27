@@ -56,6 +56,18 @@ class Anketa:
         "Senior": "Senior: Специалист является техническим лидером команды с глубокими знаниями, опытом и экспертизой. Решает задачи на уровне проекта / отдела (216-240 поинтов)", 
         "Lead" : "Lead: Специалист является компетентным лидером команды, обеспечивает условия реализации стратегии компании. Основная функция - организация работы команды и контроль выполнения задач (216-240 поинтов)"
     }
+    
+    question_level = {
+        'Не понимаю': 0,
+        'Не знаю': 0,
+        "Не владею": 0,
+        "Знаю только": 1,
+        "Знаю теорию": 2,
+        "Испытываю сложности": 2,
+        "Использую на": 3,
+        "Владею и": 3,
+        "Владею в": 4,
+    }
 
     def __init__(self, url, row, json_file, start_result_column):
         import pandas as pd
@@ -140,11 +152,10 @@ class Anketa:
                 del main[i]['image']
                 main[i]['type'] = 'embed'
                 main[i]['object'] = 'block'
-                main[i]['embed'] = {'url': self.img_links[counter - 1]}
-                if counter == 1:
-                    del self.img_links[counter - 1]
-                else:
-                    counter += 1
+                main[i]['embed'] = {'url': self.img_links[counter]}
+                #if counter == 1:
+                #    del self.img_links[counter - 1]
+                counter += 1
 
             elif 'heading_1' in main[i] and 'children' in main[i]['heading_1']:
                 main[i]['heading_1']['children'] = self.get_page(main[i]['heading_1']['children'])
@@ -157,6 +168,9 @@ class Anketa:
             elif i == 3 and 'paragraph' in main[i] and counter == 1:
                 text = self.level_text[self.grade_acse(self.test_result_sum[0])]
                 main[i]['paragraph']['rich_text'] = [{"type": "text", "text": {"content": text}, "plain_text": text}]
+            
+            elif "callout" in main[i]:
+                counter -= 1
         if self.start_column == 11 and 'heading_2' in main[0]:
             del main[-1]
         return main
@@ -576,7 +590,7 @@ class Anketa:
 
         # Выборка данных из указанной строки
         responses = self.data.iloc[com1:com2].values
-        result = [int(response.split('.')[0]) - 1 for response in responses]
+        result = [self.question_level[' '.join(response.split()[1:3])] for response in responses]
 
         return result
 
@@ -646,13 +660,15 @@ class Anketa:
         if folder_id:
             self.api.del_file(folder_id)
         result = []
+
         img = self.plot_bar_chart_with_annotations()
         link = self.api.create_n_load(
             folder_name=self.name,
             img_path=img,
             img_name='result')
-        os.remove(img)
+        #os.remove(img)
         result.append(link)
+
         for i in range(1, len(self.test_result) + 1):
             data1 = self.test_result[i]['meta']
             lower_bound_value = self.test_result[i]['level'][1] // 10
@@ -664,8 +680,10 @@ class Anketa:
                 folder_name=self.name, 
                 img_path=img, 
                 img_name=str(i))
-            os.remove(img)
+            #os.remove(img)
             result.append(link)
+
+        
         return result
         
     @classmethod
@@ -752,19 +770,22 @@ def full():
 def part():
     person = Anketa(url=Anketa.URL_LIGA,
                     row=10,
-                    json_file='data/short2_back.json',
+                    json_file='data/new_version.json',
                     start_result_column=13)
-    print(person.test_result_img())
+    print(person.test_result)
 
 def test():
     import json
-    person = Anketa(url=Anketa.URL_LIGA,
-                    row=10,
+    person = Anketa(url=Anketa.URL_STAFF,
+                    row=30,
                     json_file='data/new_version.json',
-                    start_result_column=13)
-    with open(person.json_file, 'r') as file:
+                    start_result_column=11)
+    with open('data/new_version.json', 'r') as file:
         main = json.load(file)
-    print(person.get_page(main))
+    k = person.get_page(main)
+    print(k)
+    with open('tmp.json', 'w') as js:
+        json.dump(k, js)
 if __name__ == '__main__':
     full()
 

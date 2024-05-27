@@ -1,7 +1,7 @@
 python-dotenv
 requests
 plotly
-kaleido
+kaleido==0.1.0post1
 aiogram==3.4.1
 pandas
 PyDrive2

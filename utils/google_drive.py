@@ -90,8 +90,8 @@ class GoogleApi:
 
 if __name__ == '__main__':
     os.chdir('notionapi')
-    #api = GoogleApi('my_google_key.json', '19i_mtgS6DTCMhtzPpt3wKdnN0vH_U8iW')
-    api = GoogleApi('se_google_key.json', '1wbmhJP3JEsL2_n2bgXaD4yl7PAbx6k_R')
+    api = GoogleApi('my_google_key.json', '19i_mtgS6DTCMhtzPpt3wKdnN0vH_U8iW')
+    #api = GoogleApi('se_google_key.json', '1wbmhJP3JEsL2_n2bgXaD4yl7PAbx6k_R')
     #here = api.folder_here('Симонов Никита Алексеевич')
     here = api.create_n_load('Симонов Никита Алексеевич', '1715758693.8517.png', '1715758693.8517.png')
     #lol = api.create_n_load('test', '1715758693.8517.png', '1715758693.8517.png')

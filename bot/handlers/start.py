@@ -6,7 +6,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types.reply_keyboard_remove import ReplyKeyboardRemove
 import traceback
 from aiogram.utils.media_group import MediaGroupBuilder
-from aiogram.types import URLInputFile
+from aiogram.types import URLInputFile, FSInputFile
+import os
 
 router = Router()
 
@@ -35,7 +36,7 @@ async def who(message: Message, state: FSMContext):
     await state.update_data(who=message.text)
     await message.answer(
         text='Пожалуйста, введи номер строки из Google Sheets',
-         reply_markup=ReplyKeyboardRemove()
+        reply_markup=ReplyKeyboardRemove()
     )
 
 @router.message(F.text == "Связаться с разработчиком")
@@ -53,17 +54,18 @@ async def layer2(message: Message, state: FSMContext):
     await message.answer(
         text='Выбери действие⬇️',
         reply_markup=builders.reply(
-            (('Опубликовать в Notion',)) # Получить графики
+            (('Опубликовать в Notion', 'Получить графики')) # Получить графики
         )
     )
 
-@router.message(F.text.in_(('Опубликовать в Notion'))) # получить графики
+@router.message(F.text.in_(('Опубликовать в Notion', "Получить графики"))) # получить графики
 async def post_notion(message: Message, state: FSMContext):
     from main import Anketa
 
     a = await state.get_data()
     await message.answer(
-        text='Подожди немного... Я напишу, когда будет готово!'
+        text='Подожди немного... Я напишу, когда будет готово!',
+        reply_markup=ReplyKeyboardRemove()
     )
     try:
         if a['who'] == 'Штатный Сотрудник':
@@ -75,20 +77,6 @@ async def post_notion(message: Message, state: FSMContext):
             await message.answer(
                 text=f'Имя сотрудника: {person.name}'
             )
-            if message.text == 'Получить графики':
-                here = person.api.folder_here(person.name)
-                if here:
-                    await message.answer(
-                        text='Папка с графиками',
-                        reply_markup=inline.url(
-                            text='Перейти в папку📂',
-                            url='https://drive.google.com/drive/folders/' + here
-                        )
-                    )
-                else:
-                     await message.answer('Карточка ещё не создана, графиков нет')
-            elif message.text == 'Опубликовать в Notion':
-                res = person.post_staff()
         elif a['who'] == 'Легионер':
 
             person = Anketa(url=Anketa.URL_LIGA,
@@ -99,25 +87,23 @@ async def post_notion(message: Message, state: FSMContext):
                 text=f'ID легионера: {person.id}'
             )
             
-            if message.text == 'Получить графики':
-                imgs = person.test_result_img()            
-                album_builder = MediaGroupBuilder()
-                for i in imgs:
-                    album_builder.add_photo(media=i)
-                await message.answer_media_group(media=album_builder.build())
-                #here = person.api.folder_here(person.name)
-                #await message.answer(
-                #    text='Папка с графиками',
-                #    reply_markup=inline.url(
-                #        text='Перейти в папку📂',
-                #        url='https://drive.google.com/drive/folders/' + here
-                #    )
-                #)
-            elif message.text == 'Опубликовать в Notion':
-                res = person.post_liga()
-        else:
-            await cmd_menu(message)
+        all_files = os.listdir('.')
+        png_files = [f for f in all_files if f.endswith('.png')]
+        album_builder = MediaGroupBuilder()
+        for filename in png_files:   
+            album_builder.add_photo(media=FSInputFile(filename))
+        await message.answer_media_group(media=album_builder.build())
+        for filename in png_files:   
+            os.remove(filename)
+
         if message.text == 'Опубликовать в Notion':
+            await message.answer('Подожди ещё, пожалуйста, публикую карточку в notion')
+            if a['who'] == 'Легионер':
+                res = person.post_liga()
+
+            elif a['who'] == 'Штатный Сотрудник':
+                res = person.post_staff()
+
             await message.answer(
                 text=f'Готово! Можешь проверить карточку',
                 reply_markup=inline.url(
@@ -128,7 +114,7 @@ async def post_notion(message: Message, state: FSMContext):
     except Exception as err:
         #await message.answer(str(err))
         await message.answer(
-            text=f'Ошибочка...\n{traceback.format_exc()[:4000]}\nОна может возникнуть в случае, когда указана несуществующая строка. Могут быть иные причины. Попробуйте ещё раз, либо свяжитесь с разработчиком'
+            text=f'Ошибочка...\n{traceback.format_exc()[:4000]}'
         )
         #await cmd_menu(message)
 
