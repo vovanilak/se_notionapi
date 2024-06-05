@@ -28,22 +28,22 @@ class Anketa:
 
     levels = {
         0: 'Outside',
-        15: 'Junior-intern',
-        20: 'Junior',
-        25: 'Pre-Middle',
-        30: 'Middle',
-        35: 'Pre-Senior',
-        40: 'Senior',
+        12: 'Junior-intern',
+        18: 'Junior',
+        24: 'Pre-Middle',
+        27: 'Middle',
+        32: 'Pre-Senior',
+        36: 'Senior',
     }
 
     level_f = {
-    0: 'Outside',
-    72: 'Junior-intern',
-    108: 'Junior',
-    144: 'Pre-Middle',
-    162: 'Middle',
-    192: 'Pre-Senior',
-    216: 'Senior',
+        0: 'Outside',
+        60: 'Junior-intern',
+        90: 'Junior',
+        121: 'Pre-Middle',
+        135: 'Middle',
+        162: 'Pre-Senior',
+        180: 'Senior',
     }
 
     level_text = {
@@ -568,7 +568,7 @@ class Anketa:
         return dct
 
     def get_result_sum(self):
-        su = [self.test_result[i]['level'][0] for i in range(1, 7)]
+        su = [self.test_result[i]['level'][0] for i in range(1, 6)]
         res = self.find_level(su, self.level_f)
         return res
 
@@ -725,11 +725,11 @@ class Anketa:
     def post_google(
         self, 
         img_path,
-        img_name,
-        folder_name,
-        ):
-        link = self.api.create_n_load(folder_name, img_path, img_name)
-        return link
+            img_name,
+            folder_name,
+            ):
+            link = self.api.create_n_load(folder_name, img_path, img_name)
+            return link
 
 
 
