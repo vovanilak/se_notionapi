@@ -1,7 +1,6 @@
 .env
 archive/
 graph/
-notion/
 user/
 __pycache__/
 se_google_key.json

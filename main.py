@@ -88,7 +88,8 @@ class Anketa:
             #root_folder_id='1mnyu7zvD1yNgAtZDWmKeeSMdmXRYuOYu'
             #root_folder_id='19i_mtgS6DTCMhtzPpt3wKdnN0vH_U8iW'
         )
-        self.img_links = self.test_result_img()
+        #self.img_links = self.test_result_img()
+        self.img_links = None
 
 
     def get_id(self):
@@ -115,6 +116,7 @@ class Anketa:
 
     def get_page(self, main):
         counter = 1
+        flag = 0
         for i in range(len(main)):
             if "table" in main[i]:
                 if len(main[i]['table']["children"]) > 2 and len(main[i]['table']["children"][0]['table_row']['cells']) == 3:
@@ -125,7 +127,7 @@ class Anketa:
                             children[j + 1]["table_row"]['cells'][2][0]['annotations'] = {'color': 'red', 'bold': True}
                     children[j + 2]["table_row"]['cells'][2][0]['text']['content'] = str(self.test_result[counter]['level'][0])
                     
-                elif len(main[i]['table']["children"]) == 2 and counter < 7:
+                elif len(main[i]['table']["children"]) == 2 and counter < 7 and flag:
                     children = main[i]['table']["children"]
                     children[0]['table_row']['cells'][0][0]['text']['content'] = str(self.test_result[counter]['level'][3])
                     children[0]['table_row']['cells'][2][0]['text']['content'] = str(self.test_result[counter]['level'][4])
@@ -142,11 +144,13 @@ class Anketa:
                     children[1]['table_row']['cells'][1][0]['text']['content'] = str(self.test_result_sum[0])
                     children[1]['table_row']['cells'][2][0]['text']['content'] = str(self.test_result_sum[2])
 
-                elif len(main[i]['table']["children"]) == 8:
+
+                elif len(main[i]['table']["children"]) == 8 and not flag:
                     children = main[i]['table']["children"]
                     for j in range(1, 7):
                         children[j]["table_row"]['cells'][2][0]['text']['content'] = str(self.test_result[j]['level'][0])
                     children[-1]["table_row"]['cells'][2][0]['text']['content'] = str(self.test_result_sum[0])
+            
             elif "image" in main[i] and counter < 8:
                 #main[i]['image']['external']['url'] = self.img_links[counter - 1]
                 del main[i]['image']
@@ -156,6 +160,9 @@ class Anketa:
                 #if counter == 1:
                 #    del self.img_links[counter - 1]
                 counter += 1
+
+            elif "quote" in main[i]:
+                flag = 1
 
             elif 'heading_1' in main[i] and 'children' in main[i]['heading_1']:
                 main[i]['heading_1']['children'] = self.get_page(main[i]['heading_1']['children'])
@@ -171,8 +178,8 @@ class Anketa:
             
             elif "callout" in main[i]:
                 counter -= 1
-        if self.start_column == 11 and 'heading_2' in main[0]:
-            del main[-1]
+        #if self.start_column == 11 and 'heading_2' in main[0]:
+        #    del main[-1]
         return main
 
     
@@ -367,7 +374,7 @@ class Anketa:
         if title_name == 'ID Legioner':
             dct.update(
                 {
-                    'Ассесмент-Центр': {
+                    'Центр оценки компетенций': {
                         'select': {
                             'name': 'AC/SE'
                         }
@@ -496,8 +503,9 @@ class Anketa:
         database_person=DATABASE_LIGA_PERSON,
     ):
         import json
+        self.img_links = self.test_result_img()
         with open(self.json_file, 'r') as file:
-            main = json.load(file)
+            main = json.load(file)[:-6]
         try:
             prop = self.info_prop(
                 self.name,
@@ -517,11 +525,12 @@ class Anketa:
 
     def post_liga(
         self,
-        notion_token=NOTION_TOKEN, 
-        database_result=DATABASE_LIGA, 
+        notion_token=NOTION_TOKEN,
+        database_result=DATABASE_LIGA,
         database_person=DATABASE_LIGA_PERSON,
     ):
         import json
+        self.img_links = self.test_result_img()
         with open(self.json_file, 'r') as file:
             main = json.load(file)
         try:
@@ -666,7 +675,7 @@ class Anketa:
             folder_name=self.name,
             img_path=img,
             img_name='result')
-        #os.remove(img)
+        os.remove(img)
         result.append(link)
 
         for i in range(1, len(self.test_result) + 1):
@@ -680,12 +689,31 @@ class Anketa:
                 folder_name=self.name, 
                 img_path=img, 
                 img_name=str(i))
-            #os.remove(img)
+            os.remove(img)
             result.append(link)
-
         
         return result
         
+    def uguu_links(self):
+        result = []
+
+        img = self.plot_bar_chart_with_annotations()
+        link_uguu = self.post_uguu(img)
+        result.append(link_uguu)
+        os.remove(img)
+
+        for i in range(1, len(self.test_result) + 1):
+            data1 = self.test_result[i]['meta']
+            lower_bound_value = self.test_result[i]['level'][1] // 10
+            upper_bound_value = self.test_result[i]['level'][2] // 10
+            lower_ttl = self.test_result[i]['level'][3]
+            upper_ttl = self.test_result[i]['level'][4]
+            img = self.plot_radar_chart(data1, lower_bound_value, upper_bound_value, lower_ttl, upper_ttl)
+            link_uguu = self.post_uguu(img)
+            result.append(link_uguu)
+            os.remove(img)
+        
+        return result
     @classmethod
     def post_uguu(cls, img_path):
         import requests
@@ -754,7 +782,7 @@ def full():
     if want:
         person = Anketa(url=Anketa.URL_STAFF,
                         row=number,
-                        json_file='data/new_version.json',
+                        json_file='data/new_version2.json',
                         start_result_column=11)
         k = person.post_staff()
         print(k)
@@ -762,10 +790,10 @@ def full():
     else:
         person = Anketa(url=Anketa.URL_LIGA,
                         row=number,
-                        json_file='data/new_version.json',
+                        json_file='data/new_version2.json',
                         start_result_column=13)
         res = person.post_liga()
-        print(*res, sep='\n\n')
+        print(res, sep='\n\n')
 
 def part():
     person = Anketa(url=Anketa.URL_LIGA,
