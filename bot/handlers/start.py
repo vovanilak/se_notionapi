@@ -140,5 +140,3 @@ async def error(message: Message, state: FSMContext):
     )
     await cmd_menu(message)
 
-
-
