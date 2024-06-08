@@ -17,7 +17,7 @@ if os.path.exists(WORKDIR) and os.path.isdir(WORKDIR):
 
 pageid = '22be90b314b246b792acf0ae0b2b84b4'
 pageid = '6ba09cccf46d4e8c8a5aa044f3fd3481'
-pageid = '5e4093d0244f42f789ac10eb8622923c' # тест таблица
+pageid = '5f2dad743cb547ddbc396a6b2342f963' # тест таблица
 url = f'https://api.notion.com/v1/blocks/{pageid}/children?page_size=105'
 
 headers = {
