@@ -1,9 +1,10 @@
 .env
 archive/
-graph/
-user/
 __pycache__/
-se_google_key.json
-my_google_key.json
 1715758693.8517.png
 .gitignore
+bot/__pycache__
+bot/handlers/__pycache__
+bot/keyboards/__pycache__
+utils/__pycache__
+data/google/
