@@ -53,11 +53,11 @@ def liga_n_staff(
                     children[j]["table_row"]['cells'][2][0]['text']['content'] = str(levels[j][0])
                 children[-1]["table_row"]['cells'][2][0]['text']['content'] = str(test_result_sum[0])
         
-        elif "image" in main[i] and counter < 6:
+        elif "image" in main[i]:
             del main[i]['image']
             main[i]['type'] = 'embed'
             main[i]['object'] = 'block'
-            main[i]['embed'] = {'url': img_links[counter]}
+            main[i]['embed'] = {'url': img_links[counter - 1]}
             counter += 1
 
         elif "quote" in main[i]:
@@ -69,7 +69,7 @@ def liga_n_staff(
                 levels=levels,
                 grade_acse=grade_acse,
                 metas=metas,
-                img_links=img_links,
+                img_links=img_links[1:],
                 test_result_sum=test_result_sum
                 )
 
@@ -87,8 +87,8 @@ def liga_n_staff(
             main[i]['paragraph']['rich_text'] = [{"type": "text", "text": {"content": text}, "plain_text": text}]
         
 
-        elif "callout" in main[i]:
-            counter -= 1
+        #elif "callout" in main[i]:
+        #    counter -= 1
 
     return main
 
@@ -99,6 +99,7 @@ if __name__ == '__main__':
     #print(row.data['id'], row.data['name'])
     person = Person(row.data, row.answer, 'ID Legioner')
     test = Test(row.answer)
+    
     pg = liga_n_staff(
         main=data,
         levels=person.levels,
@@ -107,5 +108,6 @@ if __name__ == '__main__':
         img_links=['https://a.d-cd.net/bYAAAgBYPOA-1920.jpg']*6,
         test_result_sum=test.result_sum
     )
-    print(pg)
+
+    #print(pg)
 
