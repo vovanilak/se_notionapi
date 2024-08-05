@@ -586,7 +586,7 @@ class Anketa:
             page_content=[],
             emoji="🤓"
         )
-        return a, b
+        return a
         
 
     def get_result(self):
