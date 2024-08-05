@@ -73,7 +73,7 @@ async def post_notion(message: Message, state: FSMContext):
 
             person = Anketa(url=Anketa.URL_STAFF,
                             row=a['row'],
-                            json_file='data/new_version2.json',
+                            json_file='data/notion/new_version2.json',
                             start_result_column=11)
             await message.answer(
                 text=f'Имя сотрудника: {person.name}'
@@ -83,7 +83,7 @@ async def post_notion(message: Message, state: FSMContext):
 
             person = Anketa(url=Anketa.URL_LIGA,
                             row=a['row'],
-                            json_file='data/new_version2.json',
+                            json_file='data/notion/new_version2.json',
                             start_result_column=13)
             await message.answer(
                 text=f'ID легионера: {person.id}'

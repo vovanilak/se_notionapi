@@ -4,10 +4,11 @@ from datetime import datetime
 class Row:
     def __init__(self, table_path, row_number):
         self.main_data = pd.read_csv(table_path)
-        self.row_number = row_number
+        self.row_number = row_number - 2
         self.id = self.get_id()
         self.data = self.get_df_dict()
         self.answer = self.get_test_answer()
+        self.name = self.data['name']
         
     def get_df_dict(self):
         data = self.main_data.iloc[self.row_number - 2, :]
@@ -40,6 +41,7 @@ class Row:
         inx = date_list[date_list == source].index[0]
         idd = str(d).rjust(2, '0') + str(m).rjust(2, '0') + str(y)[2:] + str(inx + 1) + 'SE'
         return idd
+
 
 if __name__ == '__main__':
     row = Row('https://docs.google.com/spreadsheets/d/1hgC7-TI2INK2ZIU7gv82hALETcOnI35iRny5I3oV2KE/export?format=csv&gid=673713785',30)

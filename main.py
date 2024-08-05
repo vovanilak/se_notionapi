@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 from datetime import datetime
 from dotenv import load_dotenv
 from pprint import pprint
-from utils.google_drive import GoogleApi
+from server.google import GoogleApi
 import os
 
 load_dotenv()
@@ -93,7 +93,7 @@ class Anketa:
         self.test_result_sum = self.get_result_sum()
         self.url = None
         self.api = GoogleApi(
-            service_path='se_google_key.json',
+            service_path='data/google/se_google_key.json',
             root_folder_id='1wbmhJP3JEsL2_n2bgXaD4yl7PAbx6k_R'
             #root_folder_id='1mnyu7zvD1yNgAtZDWmKeeSMdmXRYuOYu'
             #root_folder_id='19i_mtgS6DTCMhtzPpt3wKdnN0vH_U8iW'
@@ -814,7 +814,7 @@ def full():
     if want:
         person = Anketa(url=Anketa.URL_STAFF,
                         row=number,
-                        json_file='data/new_version2.json',
+                        json_file='data/notion/new_version2.json',
                         start_result_column=11)
         k = person.post_staff()
         print(k)
@@ -822,7 +822,7 @@ def full():
     else:
         person = Anketa(url=Anketa.URL_LIGA,
                         row=number,
-                        json_file='data/new_version2.json',
+                        json_file='data/notion/new_version2.json',
                         start_result_column=13)
         res = person.post_liga()
         print(*res, sep='\n\n')
@@ -830,7 +830,7 @@ def full():
 def part():
     person = Anketa(url=Anketa.URL_LIGA,
                     row=10,
-                    json_file='data/new_version.json',
+                    json_file='data/notion/new_version.json',
                     start_result_column=13)
     print(person.test_result)
 
@@ -838,7 +838,7 @@ def test():
     import json
     person = Anketa(url=Anketa.URL_STAFF,
                     row=30,
-                    json_file='data/new_version.json',
+                    json_file='data/notion/new_version.json',
                     start_result_column=11)
     with open('data/new_version.json', 'r') as file:
         main = json.load(file)
