@@ -2,10 +2,9 @@ import sys
 import os
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-from user.source import Row
-from user.person import Person
-from answer.test import Test
-from answer.plot import test_result_img
+from person.source import Row
+from person.test import Test
+from person.plot import test_result_img
 from template.properties import info_prop
 from dotenv import load_dotenv
 from config.secret import *

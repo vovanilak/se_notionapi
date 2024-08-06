@@ -7,7 +7,9 @@ from aiogram.types.reply_keyboard_remove import ReplyKeyboardRemove
 import traceback
 from aiogram.utils.media_group import MediaGroupBuilder
 from aiogram.types import URLInputFile, FSInputFile
-import pprint
+from main import MainProcess
+from server.uguu import post_uguu
+from person.test import Test
 import os
 
 router = Router()
@@ -49,6 +51,7 @@ async def developer(message: Message):
                         url='https://t.me/vovanilak'
                     )
     )
+
 @router.message(F.text.isdigit())
 async def layer2(message: Message, state: FSMContext):
     await state.update_data(row=int(message.text))
@@ -61,7 +64,6 @@ async def layer2(message: Message, state: FSMContext):
 
 @router.message(F.text.in_(('Публикация', 'Графики', 'Результаты'))) # получить графики
 async def post_notion(message: Message, state: FSMContext):
-    from main import Anketa
 
     a = await state.get_data()
     await message.answer(
@@ -69,44 +71,17 @@ async def post_notion(message: Message, state: FSMContext):
         reply_markup=ReplyKeyboardRemove()
     )
     try:
-        if a['who'] == 'Штатный Сотрудник':
-
-            person = Anketa(url=Anketa.URL_STAFF,
-                            row=a['row'],
-                            json_file='data/notion/new_version2.json',
-                            start_result_column=11)
-            await message.answer(
-                text=f'Имя сотрудника: {person.name}'
-            )
-
-        elif a['who'] == 'Легионер':
-
-            person = Anketa(url=Anketa.URL_LIGA,
-                            row=a['row'],
-                            json_file='data/notion/new_version2.json',
-                            start_result_column=13)
-            await message.answer(
-                text=f'ID легионера: {person.id}'
-            )
-
+        mp = MainProcess(a['who'], a['row'])
         if message.text == 'Результаты':
-            pp = pprint.PrettyPrinter()
-            pretty_string = pp.pformat(person.test_result)
-            pretty_string2 = pp.pformat(person.test_result_sum)
+
+            txt = mp.do_pretty()
             await message.answer(
-                text=f'{pretty_string}\n\n{pretty_string2}'
+                text=txt
             )
         
-        #all_files = os.listdir('.')
-        #png_files = [f for f in all_files if f.endswith('.png')]
-
         if message.text == 'Публикация':
             await message.answer('Подожди ещё, пожалуйста, публикую карточку в notion')
-            if a['who'] == 'Легионер':
-                res = person.post_liga()
-
-            elif a['who'] == 'Штатный Сотрудник':
-                res = person.post_staff()
+            res = mp.run()
 
             await message.answer(
                 text=f'Готово! Можешь проверить карточку',
@@ -117,18 +92,16 @@ async def post_notion(message: Message, state: FSMContext):
             )
 
         if message.text == 'Графики':
-            png_files = person.uguu_links()
+            png_files = mp.get_tmp_imgs()
             album_builder = MediaGroupBuilder()
             for filename in png_files:   
                 album_builder.add_photo(media=URLInputFile(filename))
             await message.answer_media_group(media=album_builder.build())
 
     except Exception as err:
-        #await message.answer(str(err))
         await message.answer(
             text=f'Ошибочка...\n{traceback.format_exc()[:4000]}'
         )
-        #await cmd_menu(message)
 
     await cmd_menu(message)
     

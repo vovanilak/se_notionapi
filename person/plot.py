@@ -6,8 +6,9 @@ import plotly.io as pio
 import time
 from config.test import level_f
 from server.google import GoogleApi
-from answer.test import Test
-from user.source import Row
+from server.uguu import post_uguu
+from person.test import Test
+from person.source import Row
 
 def plot_radar_chart(data1, lower_bound_value, upper_bound_value, lower_ttl, upper_ttl):
     import plotly.graph_objects as go
@@ -113,7 +114,6 @@ def plot_bar_chart_with_annotations(levels):
     return f'{new_file}.png'
 
 
-
 def test_result_img(person_name, grouped_metas, levels, result_sum):
     api = GoogleApi(
         service_path='./data/google/se_google_key.json',
@@ -133,6 +133,8 @@ def test_result_img(person_name, grouped_metas, levels, result_sum):
     os.remove(img)
     result.append(link)
 
+    print(levels)
+
     for i in range(5):
         data1 = grouped_metas[i]
         lower_bound_value = levels[i][1] // 10
@@ -148,6 +150,28 @@ def test_result_img(person_name, grouped_metas, levels, result_sum):
         result.append(link)
 
     return result
+
+def uguu_links(grouped_metas, levels, result_sum):
+    result = []
+
+    img = plot_bar_chart_with_annotations(levels)
+    link = post_uguu(img)
+    #os.remove(img)
+    result.append(link)
+
+    for i in range(5):
+        data1 = grouped_metas[i]
+        lower_bound_value = levels[i][1] // 10
+        upper_bound_value = levels[i][2] // 10
+        lower_ttl = levels[i][3]
+        upper_ttl = levels[i][4]
+        img = plot_radar_chart(data1, lower_bound_value, upper_bound_value, lower_ttl, upper_ttl)
+        link = post_uguu(img)
+        #os.remove(img)
+        result.append(link)
+
+    return result
+
 
 if __name__ == '__main__':
     row = Row('https://docs.google.com/spreadsheets/d/1hgC7-TI2INK2ZIU7gv82hALETcOnI35iRny5I3oV2KE/export?format=csv&gid=673713785', 40)

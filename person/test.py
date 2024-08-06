@@ -2,17 +2,17 @@ import os
 import sys 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from config import test
-from config.test import level_f
 from server.google import GoogleApi
+from config.test import kcal
 class Test:
     def __init__(self, answers):
         self.answers = answers
+        self.ans_kcal = []
         self.metas = self.get_grouped_metas(self.answers)
         self.levels = self.get_levels(self.metas)
-        self.result_sum = self.get_result_sum(self.levels)
+        self.result_sum = self.get_result_sum(self.metas)
         self.points = self.result_sum[0]
         self.grade_acse = self.grade(self.points)
-
 
     def get_grouped_metas(self, meta):
         lst = []
@@ -23,17 +23,17 @@ class Test:
     def get_levels(self, grouped_metas):
         return [self.find_level(compet, test.levels) for compet in grouped_metas]
         
-    def get_result_sum(self, levels):
-        su = [s[0] for s in levels]
+    def get_result_sum(self, grouped_metas):
+        su = [sum(s) for s in grouped_metas[:-1]]
         res = self.find_level(su, test.level_f)
         return res
     
     @classmethod
     def grade(cls, points):
-        grds = list(level_f.keys())
+        grds = list(test.level_f.keys())
         for r in grds:
             if points in range(r):
-                return level_f[grds[grds.index(r) - 1]]
+                return test.level_f[grds[grds.index(r) - 1]]
         return 'Senior'
 
 
@@ -58,6 +58,10 @@ class Test:
         upper_bound_name = levels.get(upper_bound, "Неизвестно")
 
         return [sum_meta, lower_bound, upper_bound, lower_bound_name, upper_bound_name]
+
+    def do_kcal(self, metas):
+        new = [k for k in kcal]
+        
 
 if __name__ == "__main__": 
     test = Test([3]*60)

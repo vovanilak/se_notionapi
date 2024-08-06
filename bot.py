@@ -9,8 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
-TOKEN = getenv("BOT_TOKEN")
+TOKEN = getenv("MY_BOT_TOKEN")
 dp = Dispatcher()
 
 async def main():

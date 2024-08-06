@@ -3,10 +3,11 @@ import os
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import json
 from utils.dictionry import insert_value
-from user.source import Row
-from user.person import Person
+from person.source import Row
 from config.proporties import *
-from answer.test import Test
+from config.secret import *
+from person.test import Test
+from pprint import pprint
 
 
 def staff(links):
@@ -151,12 +152,12 @@ def info_prop(
         )
 
     dct.update(title_prop(title_name=title_name, title_value=title_value))
+    print(dct)
     return dct
 
 if __name__ == '__main__':
-    row = Row('https://docs.google.com/spreadsheets/d/1hgC7-TI2INK2ZIU7gv82hALETcOnI35iRny5I3oV2KE/export?format=csv&gid=673713785',30)
+    row = Row(URL_LIGA, 52)
     test = Test(row.answer)
-    person = Person(row.data, row.answer, 'ID Legioner')
     pr = info_prop(
         title_value='Петя',
         title_name='ID Legioner',
@@ -165,4 +166,4 @@ if __name__ == '__main__':
         levels=test.levels,
         grade_acse=test.grade_acse,
     )
-    print(pr)
+    pprint(pr)

@@ -5,9 +5,8 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from config.test import level_text
 import json
 
-from user.source import Row
-from user.person import Person
-from answer.test import Test
+from person.source import Row
+from person.test import Test
 
 def liga_n_staff(
     main, # json-шаблон

@@ -11,7 +11,7 @@ class Row:
         self.name = self.data['name']
         
     def get_df_dict(self):
-        data = self.main_data.iloc[self.row_number - 2, :]
+        data = self.main_data.iloc[self.row_number, :]
         data = data.dropna().to_dict()
         data.update({'id': self.id})
         return data
@@ -21,7 +21,7 @@ class Row:
         columns = list(self.data.keys()).copy()
         for column_name in columns:
             if column_name[0].isdigit() and column_name[1] == '.':
-                tmp = int(self.data[column_name][0])
+                tmp = int(self.data[column_name][0]) - 1
                 lst.append(tmp)
                 
                 del self.data[column_name]
