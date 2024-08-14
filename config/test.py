@@ -20,6 +20,34 @@ level_f = {
     180: 'Senior',
 }
 
+level_f = {
+    0: 'Outside',
+    60: 'Junior-Intern',
+    90: 'Junior',
+    121: 'Pre-Middle',
+    135: 'Middle',
+    162: 'Pre-Senior',
+    180: 'Senior',
+}
+
+level_percent = {
+    0: 'Outside',
+    5: 'Junior-Intern',
+    21: 'Junior',
+    41: 'Pre-Middle',
+    61: 'Middle',
+    81: 'Pre-Senior',
+    91: 'Senior',
+    100: 'Lead',
+}
+
+max_comp = [43.5, 43.5, 45.5, 38, 37]           # максимальное количество баллов за каждую компетенцию
+percent_max_comp = [8.7, 8.7, 9.1, 7.6, 7.4]    # сумма весов каждой компетенции
+max_sum = round(sum([a * b for a, b in zip(max_comp, percent_max_comp)]), 2)              # максимальный бал
+max_sum_ba = round(sum([a * b for a, b in zip(max_comp[:3], percent_max_comp[:3])]), 2)   # максимальный бал для БА
+max_sum_sa = round(sum([a * b for a, b in zip(max_comp[2:], percent_max_comp[2:])]), 2)   # максимальный бал для СА
+
+
 level_text = {
     "Outside": "Outside: Не обладает необходимыми для Junior-intern навыками, не имеющий достаточно опыта работы с программными средствами (0-59 поинтов)",
     "Junior-Intern" : "Junior-intern: Специалист с начальными техническими навыками, способный выполнять задачи проекта/команды только под контролем наставника (60-89 поинтов)",
@@ -44,7 +72,6 @@ question_level = {
 }
 
 kcal = [
-    [
         1.0,
         1.0,
         0.5,
@@ -55,8 +82,7 @@ kcal = [
         0.8,
         1.0,
         1.0,
-    ],
-    [
+
         0.5,
         0.8,
         0.8,
@@ -67,8 +93,7 @@ kcal = [
         0.8,
         1.0,
         1.0,
-    ],
-    [
+    
         1.0,
         0.8,
         0.8,
@@ -79,8 +104,6 @@ kcal = [
         1.0,
         0.5,
         1.0,
-    ],
-    [
 
         0.8,
         0.8,
@@ -92,8 +115,7 @@ kcal = [
         0.8,
         0.8,
         0.8,
-    ],
-    [
+
         1.0,
         1.0,
         0.8,
@@ -104,6 +126,5 @@ kcal = [
         0.5,
         0.5,
         0.5,
-    ]
 ]
     

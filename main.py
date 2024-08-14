@@ -24,6 +24,7 @@ class MainProcess:
             person_name=self.row.name,
             grouped_metas=self.test.metas,
             levels=self.test.levels,
+            levels_percent=self.test.levels_percent,
             result_sum=self.test.result_sum
         )
         return imgs
@@ -31,7 +32,7 @@ class MainProcess:
     def get_tmp_imgs(self):
         imgs = uguu_links(
             grouped_metas=self.test.metas,
-            levels=self.test.levels,
+            levels=self.test.levels_percent,
             result_sum=self.test.result_sum
         )
         return imgs
@@ -40,6 +41,7 @@ class MainProcess:
         pg = liga_n_staff(
             main=self.data,
             levels=self.test.levels,
+            levels_percent=self.test.levels_percent,
             grade_acse=self.test.grade_acse,
             metas=self.test.metas,
             img_links=imgs,
@@ -72,8 +74,8 @@ class MainProcess:
     
     def do_pretty(self):
         txt = ''
-        for m, l in zip(self.test.metas, self.test.levels):
-            txt += f'{m}\n{l}\n\n'
+        for m, l, k in zip(self.test.metas, self.test.levels, self.test.levels_percent):
+            txt += f'{m}\n{l}\n{k}\n\n'
         txt += f'\n{self.test.result_sum}'
         return txt
     
@@ -104,10 +106,10 @@ class MainProcess:
         return res
 
 def main():
-    mp = MainProcess('Легионер', 52)
+    mp = MainProcess('Штатный Сотрудник', 47)
     #r = mp.get_prop(title_name='ID Legioner', title_value='Петя')
     r = mp.run()
     return r
 
 if __name__ == '__main__':
-    main()
+    print(main()) #main()

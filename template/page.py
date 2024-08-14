@@ -11,6 +11,7 @@ from person.test import Test
 def liga_n_staff(
     main, # json-шаблон
     levels,
+    levels_percent,
     metas,
     test_result_sum,
     img_links, 
@@ -24,8 +25,8 @@ def liga_n_staff(
                 children = main[i]['table']["children"]
                 for j in range(10):
                     children[j + 1]["table_row"]['cells'][2][0]['text']['content'] = str(metas[counter - 1][j])
-                    if metas[counter - 1][j] < 3:
-                        children[j + 1]["table_row"]['cells'][2][0]['annotations'] = {'color': 'red', 'bold': True}
+                    #if metas[counter - 1][j] < 3:
+                    #    children[j + 1]["table_row"]['cells'][2][0]['annotations'] = {'color': 'red', 'bold': True}
                 children[j + 2]["table_row"]['cells'][2][0]['text']['content'] = str(levels[counter - 1][0])
                 
             elif len(main[i]['table']["children"]) == 2 and counter < 6 and flag:
@@ -48,8 +49,8 @@ def liga_n_staff(
 
             elif len(main[i]['table']["children"]) == 8 and not flag:
                 children = main[i]['table']["children"]
-                for j in range(6):
-                    children[j]["table_row"]['cells'][2][0]['text']['content'] = str(levels[j][0])
+                for j in range(5):
+                    children[j + 1]["table_row"]['cells'][2][0]['text']['content'] = str(levels_percent[j][0])
                 children[-1]["table_row"]['cells'][2][0]['text']['content'] = str(test_result_sum[0])
         
         elif "image" in main[i]:
@@ -66,6 +67,7 @@ def liga_n_staff(
             main[i]['heading_1']['children'] = liga_n_staff(
                 main=main[i]['heading_1']['children'],
                 levels=levels,
+                levels_percent=levels_percent,
                 grade_acse=grade_acse,
                 metas=metas,
                 img_links=img_links[1:],

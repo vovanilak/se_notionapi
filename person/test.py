@@ -4,15 +4,25 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from config import test
 from server.google import GoogleApi
 from config.test import kcal
+
 class Test:
-    def __init__(self, answers):
-        self.answers = answers
-        self.ans_kcal = []
-        self.metas = self.get_grouped_metas(self.answers)
+    def __init__(self, answers, verif=[1] * 60):
+        self.answers = self.do_kcal(answers)
+        self.verif = self.do_kcal(verif)
+        self.merged = [round(a + b, 2) for a, b in zip(self.answers, self.verif)]
+        self.metas = self.get_grouped_metas(self.merged)
         self.levels = self.get_levels(self.metas)
+        self.levels_percent = self.get_levels_percent(self.metas)
         self.result_sum = self.get_result_sum(self.metas)
-        self.points = self.result_sum[0]
+        self.points = sum(self.merged)
         self.grade_acse = self.grade(self.points)
+
+    def do_kcal(self, metas):
+        lst = []
+        for i in range(50):
+            lst.append(round(metas[i] * test.kcal[i], 2))
+        lst.extend(metas[50:])
+        return lst
 
     def get_grouped_metas(self, meta):
         lst = []
@@ -20,12 +30,30 @@ class Test:
             lst.append(meta[i:i + 10])
         return lst
 
+    def normal(self, number, compet):
+        return int(round(number / test.max_comp[compet], 2) * 100)
+
+    def get_levels_percent(self, grouped_metas):
+        lst = []
+        for i in range(5):
+            normal = self.normal(sum(grouped_metas[i]), i)
+            lst.append(self.find_level(normal, test.level_percent))
+        return lst
+
     def get_levels(self, grouped_metas):
-        return [self.find_level(compet, test.levels) for compet in grouped_metas]
-        
+        lst = []
+        for i in range(6):
+            normal = round(sum(grouped_metas[i]))
+            lst.append(self.find_level(normal, test.levels))
+        return lst
+
     def get_result_sum(self, grouped_metas):
-        su = [sum(s) for s in grouped_metas[:-1]]
-        res = self.find_level(su, test.level_f)
+        lst = []
+        for i in range(5):
+            normal = sum(grouped_metas[i]) / test.max_comp[i] * test.percent_max_comp[i] * 100
+            lst.append(normal)
+        su = round(sum(lst) / sum(test.percent_max_comp))
+        res = self.find_level(su, test.level_percent)
         return res
     
     @classmethod
@@ -38,7 +66,7 @@ class Test:
 
 
     def find_level(self, meta, levels):
-        sum_meta = sum(meta)
+        sum_meta = meta
         sorted_keys = sorted(levels.keys())
 
         lower_bound = None
@@ -58,11 +86,8 @@ class Test:
         upper_bound_name = levels.get(upper_bound, "Неизвестно")
 
         return [sum_meta, lower_bound, upper_bound, lower_bound_name, upper_bound_name]
-
-    def do_kcal(self, metas):
-        new = [k for k in kcal]
         
 
 if __name__ == "__main__": 
-    test = Test([3]*60)
-    print(test.result_sum)
+    test = Test([2]*60, [1]*60)
+    print(test.levels_percent)
