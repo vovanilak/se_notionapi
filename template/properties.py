@@ -152,7 +152,6 @@ def info_prop(
         )
 
     dct.update(title_prop(title_name=title_name, title_value=title_value))
-    print(dct)
     return dct
 
 if __name__ == '__main__':

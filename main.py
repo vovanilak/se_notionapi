@@ -8,16 +8,22 @@ from template.page import liga_n_staff
 from template.properties import info_prop
 from notion.posting import post_page2db
 from person.plot import uguu_links
+from person.verif import VerifTest
 import json
 
 
 class MainProcess:
-    def __init__(self, who, row_number):
+    def __init__(self, who, row_number, row_test=0):
         with open(JSON_FILE, 'r') as f:
             self.data = json.load(f)
         self.who = who
         self.row = Row(whoau[who]['url'], row_number)
-        self.test = Test(self.row.answer)
+        self.row_test = row_test
+        if self.row_test:
+            self.vt = VerifTest(self.row_test)
+            self.test = Test(answers=self.row.answer, verif=self.vt.bal_list)
+        else:
+            self.test = Test(answers=self.row.answer)
 
     def get_imgs(self): 
         imgs = test_result_img(
@@ -106,7 +112,7 @@ class MainProcess:
         return res
 
 def main():
-    mp = MainProcess('Штатный Сотрудник', 47)
+    mp = MainProcess('Штатный Сотрудник', 46)
     #r = mp.get_prop(title_name='ID Legioner', title_value='Петя')
     r = mp.run()
     return r

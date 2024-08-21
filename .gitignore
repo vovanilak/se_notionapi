@@ -8,3 +8,5 @@ bot/handlers/__pycache__
 bot/keyboards/__pycache__
 utils/__pycache__
 data/google/
+data/answer.xlsx
+data/answer.json

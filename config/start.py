@@ -4,7 +4,7 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 from config.secret import *
 
-JSON_FILE = 'data/notion/new_version2.json'
+JSON_FILE = 'data/notion/new_version3.json'
 
 whoau = {
     'Легионер': {

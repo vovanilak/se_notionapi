@@ -58,10 +58,10 @@ class Test:
     
     @classmethod
     def grade(cls, points):
-        grds = list(test.level_f.keys())
+        grds = list(test.level_percent.keys())
         for r in grds:
             if points in range(r):
-                return test.level_f[grds[grds.index(r) - 1]]
+                return test.level_percent[grds[grds.index(r) - 1]]
         return 'Senior'
 
 
