@@ -111,7 +111,8 @@ def comp_diagram(levels, result_sum):
 
     sorted_data = sorted(level_percent.items(), key=lambda item: item[0])
     values = [l[0] for l in levels]
-    labels = [item[1] for item in sorted_data]
+    #labels = [item[1] for item in sorted_data]
+    labels = ['K1. БА', 'К2. БА', 'К3. БА&СА', 'К4. СА', 'К5. СА'] 
     low = [l[1] for l in levels]
     up = [l[2] for l in levels]
     
@@ -174,7 +175,7 @@ def test_result_img(person_name, grouped_metas, levels, levels_percent, result_s
         img_name='result')
     os.remove(img)
     result.append(link)
-
+    '''
     for i in range(5):
         data1 = grouped_metas[i]
         lower_bound_value = levels_percent[i][1]
@@ -188,7 +189,7 @@ def test_result_img(person_name, grouped_metas, levels, levels_percent, result_s
             img_name=str(i))
         os.remove(img)
         result.append(link)
-
+    '''
     return result
 
 

@@ -41,13 +41,15 @@ level_percent = {
     100: 'Lead',
 }
 
-max_comp = [43.5, 43.5, 45.5, 38, 37]           # максимальное количество баллов за каждую компетенцию
-percent_max_comp = [8.7, 8.7, 9.1, 7.6, 7.4]    # сумма весов каждой компетенции
-max_sum = round(sum([a * b for a, b in zip(max_comp, percent_max_comp)]), 2)              # максимальный бал
-max_sum_ba = round(sum([a * b for a, b in zip(max_comp[:3], percent_max_comp[:3])]), 2)   # максимальный бал для БА
-max_sum_sa = round(sum([a * b for a, b in zip(max_comp[2:], percent_max_comp[2:])]), 2)   # максимальный бал для СА
+max_comp1 = [43.5, 43.5, 45.5, 38, 37, 50]           # максимальное количество баллов за каждую компетенцию
+max_comp2 = [34.8, 34.8, 36.4, 30.4, 29.6, 40]
+percent_max_comp = [8.7, 8.7, 9.1, 7.6, 7.4]        # сумма весов каждой компетенции
+# неясно
+max_sum = round(sum([a * b for a, b in zip(max_comp1, percent_max_comp)]), 2)              # максимальный бал
+max_sum_ba = round(sum([a * b for a, b in zip(max_comp1[:3], percent_max_comp[:3])]), 2)   # максимальный бал для БА
+max_sum_sa = round(sum([a * b for a, b in zip(max_comp1[2:], percent_max_comp[2:])]), 2)   # максимальный бал для СА
 
-
+#print(max_sum, max_sum_ba, max_sum_sa)
 level_text = {
     "Outside": "Outside: Не обладает необходимыми для Junior-intern навыками, не имеющий достаточно опыта работы с программными средствами (0-59 поинтов)",
     "Junior-Intern" : "Junior-intern: Специалист с начальными техническими навыками, способный выполнять задачи проекта/команды только под контролем наставника (60-89 поинтов)",

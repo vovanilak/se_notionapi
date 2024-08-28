@@ -12,33 +12,43 @@ def liga_n_staff(
     main, # json-шаблон
     levels,
     levels_percent,
-    metas,
+    source_answers,
+    source_verif,
     test_result_sum,
-    img_links, 
-    grade_acse
+    grade_acse,
+    img_links=None
 ):
     counter = 1
     flag = 0
     for i in range(len(main)):
         if "table" in main[i]:
-            if len(main[i]['table']["children"]) > 2 and len(main[i]['table']["children"][0]['table_row']['cells']) == 3:
+            # даблица подкомпетенции
+            if len(main[i]['table']["children"]) > 9 and len(main[i]['table']["children"][0]['table_row']['cells']) >= 3:
                 children = main[i]['table']["children"]
                 for j in range(10):
-                    children[j + 1]["table_row"]['cells'][2][0]['text']['content'] = str(metas[counter - 1][j])
-                    #if metas[counter - 1][j] < 3:
-                    #    children[j + 1]["table_row"]['cells'][2][0]['annotations'] = {'color': 'red', 'bold': True}
-                children[j + 2]["table_row"]['cells'][2][0]['text']['content'] = str(levels[counter - 1][0])
-                
-            elif len(main[i]['table']["children"]) == 2 and counter < 6 and flag:
-                children = main[i]['table']["children"]
-                children[0]['table_row']['cells'][0][0]['text']['content'] = str(levels[counter - 1][3])
-                children[0]['table_row']['cells'][2][0]['text']['content'] = str(levels[counter - 1][4])
-                children[1]['table_row']['cells'][0][0]['text']['content'] = str(levels[counter - 1][1])
-                children[1]['table_row']['cells'][1][0]['text']['content'] = str(levels[counter - 1][0])
-                children[1]['table_row']['cells'][2][0]['text']['content'] = str(levels[counter - 1][2])
-                
+                    #print(children[j + 1])
+                    children[j + 1]["table_row"]['cells'][2][0]['text']['content'] = str(source_answers[counter - 1][j])
+                    if counter < 6:
+                        children[j + 1]["table_row"]['cells'][3][0]['text']['content'] = str(source_verif[counter - 1][j])
+                    #if source_answers[counter - 1][j] < 3:
+                    if source_verif[counter - 1][j] == 0:
+                        children[j + 1]["table_row"]['cells'][2][0]['annotations'] = {'color': 'red', 'bold': True}
+                        children[j + 1]["table_row"]['cells'][3][0]['annotations'] = {'color': 'red', 'bold': True}
+                #children[j + 2]["table_row"]['cells'][2][0]['text']['content'] = str(levels[counter - 1][0])
 
-            elif len(main[i]['table']["children"]) == 2:
+            # итог подкомпетенции с грейдом
+            elif len(main[i]['table']["children"]) == 3 and len(main[i]['table']["children"][0]['table_row']['cells']) == 3 and flag:
+                children = main[i]['table']["children"]
+                children[0]['table_row']['cells'][2][0]['text']['content'] = str(levels_percent[counter - 1][0])
+                children[1]['table_row']['cells'][0][0]['text']['content'] = str(levels_percent[counter - 1][3])
+                children[1]['table_row']['cells'][2][0]['text']['content'] = str(levels_percent[counter - 1][4])
+                children[2]['table_row']['cells'][0][0]['text']['content'] = str(levels_percent[counter - 1][1])
+                children[2]['table_row']['cells'][1][0]['text']['content'] = str(levels_percent[counter - 1][0])
+                children[2]['table_row']['cells'][2][0]['text']['content'] = str(levels_percent[counter - 1][2])
+                counter += 1
+                
+            # баллы итоговые с грейдом
+            elif len(main[i]['table']["children"]) == 2 and not flag:
                 children = main[i]['table']["children"]
                 children[0]['table_row']['cells'][0][0]['text']['content'] = str(test_result_sum[3])
                 children[0]['table_row']['cells'][2][0]['text']['content'] = str(test_result_sum[4])
@@ -46,18 +56,18 @@ def liga_n_staff(
                 children[1]['table_row']['cells'][1][0]['text']['content'] = str(test_result_sum[0])
                 children[1]['table_row']['cells'][2][0]['text']['content'] = str(test_result_sum[2])
 
-
+            # итоговая таблица с рекомендациями
             elif len(main[i]['table']["children"]) == 8 and not flag:
                 children = main[i]['table']["children"]
-                for j in range(5):
+                for j in range(6):
                     children[j + 1]["table_row"]['cells'][2][0]['text']['content'] = str(levels_percent[j][0])
                 children[-1]["table_row"]['cells'][2][0]['text']['content'] = str(test_result_sum[0])
         
-        elif "image" in main[i]:
+        elif "image" in main[i] and counter == 1: 
             del main[i]['image']
             main[i]['type'] = 'embed'
             main[i]['object'] = 'block'
-            main[i]['embed'] = {'url': img_links[counter - 1]}
+            main[i]['embed'] = {'url': img_links[0]}
             counter += 1
 
         elif "quote" in main[i]:
@@ -69,8 +79,9 @@ def liga_n_staff(
                 levels=levels,
                 levels_percent=levels_percent,
                 grade_acse=grade_acse,
-                metas=metas,
-                img_links=img_links[1:],
+                source_answers=source_answers,
+                source_verif=source_verif,
+                img_links=img_links,
                 test_result_sum=test_result_sum
                 )
 

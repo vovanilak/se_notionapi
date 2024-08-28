@@ -49,7 +49,8 @@ class MainProcess:
             levels=self.test.levels,
             levels_percent=self.test.levels_percent,
             grade_acse=self.test.grade_acse,
-            metas=self.test.metas,
+            source_answers=self.test.grouped_answers,
+            source_verif=self.test.grouped_verif,
             img_links=imgs,
             test_result_sum=self.test.result_sum
         )
@@ -62,7 +63,7 @@ class MainProcess:
             title_name=title_name, # whoau[self.who]['column_name'],
             row_info=self.row.data,
             result_points=self.test.result_sum[0],
-            levels=self.test.levels,
+            levels=self.test.levels_percent,
             grade_acse=self.test.grade_acse,
             relation_card=relation_card,
         )
@@ -89,7 +90,7 @@ class MainProcess:
     def run(self):
         card_name = {'Легионер': self.row.id, 'Штатный Сотрудник': self.row.name}
 
-        #pg = self.get_page(['https://drive.google.com/file/d/1q8hcUK7RObb1zbAwDzccv5myaQN5jbtn/preview']*6)
+        #pg = self.get_page(['https://drive.google.com/file/d/1q8hcUK7RObb1zbAwDzccv5myaQN5jbtn/preview'])
         pg = self.get_page(self.get_imgs())
         if self.who == 'Штатный Сотрудник':
             pg = pg[:-6]
@@ -100,7 +101,6 @@ class MainProcess:
         )
 
         res = self.post_page(pr, pg, whoau[self.who]['db'])
-
         if self.who == 'Легионер':
             pr = self.get_prop(
                 title_value=self.row.id,
@@ -112,10 +112,19 @@ class MainProcess:
         return res
 
 def main():
-    mp = MainProcess('Штатный Сотрудник', 46)
+    mp = MainProcess('Легионер', 55, 108)
     #r = mp.get_prop(title_name='ID Legioner', title_value='Петя')
     r = mp.run()
-    return r
-
+    print(
+        mp.test.levels_percent, 
+        mp.test.grade_acse, 
+        mp.test.result_sum,
+        mp.test.grouped_answers, 
+        mp.test.grouped_verif, 
+        sep='\n\n'
+    )
+    
+    return r 
+    
 if __name__ == '__main__':
-    print(main()) #main()
+    print(main(), sep='\n\n') #main()

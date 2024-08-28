@@ -5,6 +5,7 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import pandas as pd
 import json
 from config.secret import URL_TEST
+from pprint import pprint
 
 class VerifTest:
     def __init__(self, row_number):
@@ -61,6 +62,8 @@ class VerifTest:
     
 
 if __name__ == '__main__':
-    vt = VerifTest(58) #30 31 
-    print(vt.bal_list, vt.real_bal, sum(vt.bal_list))
+    vt = VerifTest(108) #30 31 
+    pprint(vt.ver_answers)
+    print(vt.bal_list)
+    print(vt.real_bal)
 
